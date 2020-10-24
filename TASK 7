@@ -1,0 +1,124 @@
+library(readxl)
+daa = read_excel("matches_SHORT.xlsx",sheet = 1)
+table(daa$team1)
+
+library(dplyr)
+library(ggplot2)
+library(plotly)
+
+tr = c("MI","KXP")
+daa_act = filter(daa,team1 %in% tr, team2 %in% tr)
+table(daa_act$team1)
+##total played 24 matches 
+
+
+     ##########
+#### Question 1 ####
+     ##########
+
+##winner##
+mk = ggplot(daa_act, aes(x = winner)) + geom_bar(aes(fill = factor(winner)))
+ggplotly(mk)
+##13 matches MI won & 11 matches KXP
+
+mp = ggplot(daa, aes(x = winner)) + geom_bar(aes(fill = factor(winner)))
+ggplotly(mp)
+#109 matches MI won & KXP won 82 matches in total
+
+##win_by_runs##
+mi = ggplot(daa_act, aes(x = winner, y = win_by_runs)) + geom_boxplot(aes(fill = factor(winner)))
+ggplotly(mi)
+##mean win_by_runs higher for KXP than MI
+
+mf = ggplot(daa, aes(x = winner, y = win_by_runs)) + geom_boxplot(aes(fill = factor(winner)))
+ggplotly(mf)
+##mean KXP is less than MI in games played in total in IPL
+
+##win_by_wickets##
+mu = ggplot(daa_act, aes(x = winner, y = win_by_wickets)) + geom_boxplot(aes(fill = factor(winner)))
+ggplotly(mu)
+##mean win_by_wickets is higher for MI than KXP 
+
+mg = ggplot(daa, aes(x = winner, y = win_by_wickets)) + geom_boxplot(aes(fill = factor(winner)))
+ggplotly(mg)
+##mean KXP is higher than MI in games played in total in IPL.
+
+###ON AN AVERAGE THE GAME MI PLAYED AGAINST KXP IS MORE LIKELY TO WIN BECAUSE MI MORE MATCHES WON AGAINST KXP & ALSO IN TOTAL, ALSO AVERAGE WON_BY_WICKETS IS MUCH HIGHER.
+
+     ##########
+#### Question 2 ####
+     ##########
+
+##filtered Q de Kock in dismissed player as he can batsman or non_stiker & as he played very few matches as Member Of MI. Therefore, taking all matches he played in IPL
+
+library(readxl)
+dhj = read_excel("deliveries_kindofbowler.xlsx")
+head(dhj)
+table(dhj$match_id)
+mk = ggplot(dhj, aes(x = kind_bowler))+geom_bar(aes(fill = factor(kind_bowler)))
+ggplotly(mk)
+##in total 48 matches that he had played in 28 matches out by fast/SEAM bowler & in 20 matches out by spin bowler.
+
+     ##########
+#### Question 3 ####
+     ##########
+gt = read.csv("dismissed_noblank.csv")
+ove = 1:6
+gf_da = filter(gt, batting_team == "Kings XI Punjab", bowling_team == "Mumbai Indians", over %in% ove)
+
+gup = group_by(gf_da,match_id)
+cv = count(gup, player_dismissed)
+hg = group_by(cv, match_id)
+dd = summarise(hg, number_ofplayer_out = sum(n))
+mean(dd$number_ofplayer_out) #1.47
+median(dd$number_ofplayer_out) ##2
+summary(dd)
+plot(dd$number_ofplayer_out) ## 10 points are one player is out, 7 pts on 2 players & 1 on 3 players
+##so chose player 1 got bowled in first 6 over
+     ##########
+#### Question 4 ####
+     ##########
+kj = read.csv("deliveries(1).csv")
+dismis = c("KL Rahul","") 
+gf_da = filter(kj, batting_team == "Kings XI Punjab", bowling_team == "Mumbai Indians", batsman == "KL Rahul" | non_striker == "KL Rahul", player_dismissed %in% dismis)
+gt = group_by(gf_da,match_id)
+lk = count(gt,dismissal_kind)
+mm = count(lk,dismissal_kind)
+
+table(mm$match_id) #unique 4 matches
+table(mm$dismissal_kind) #out of which 2 times caught means 2 times not caught
+
+ggplot(lk,aes(x=dismissal_kind))+geom_bar(aes(fill = factor(match_id)))
+### showing that IN 4 MATCHES THAT he PLAYED AGAINST MI got caught in 2 matchess & not out in 2
+
+gff_da = filter(kj,batsman == "KL Rahul" | non_striker == "KL Rahul", player_dismissed %in% dismis)
+gtt = group_by(gff_da,match_id)
+my = count(gtt,dismissal_kind)
+ft = count(my,dismissal_kind)
+table(ft$match_id) # 56 matches he played
+table (ft$dismissal_kind)
+#in total in 30 matches got caught, bowled out in 10 matches, lbw- 4 matches,run out in 1 match & stumped in 2.
+#means 58-47= 9 matches not out 
+
+kjj = ggplot(mm,aes(x=dismissal_kind))+geom_bar(aes(fill = factor(match_id)), col = "black")
+ggplotly(kjj)
+
+ku = ggplot(mm,aes(x=dismissal_kind))+geom_bar()
+ggplotly(ku)
+## 30 matches he was out 9 matches not out
+
+
+ggplot(mm,aes(x= match_id))+geom_histogram(aes(fill = dismissal_kind),bins = 100)
+     ##########
+#### Question 5 ####
+     ##########
+
+ter = c("Kings XI Punjab","Mumbai Indians")
+tg = filter(gt, bowling_team %in% ter, batting_team %in% ter)
+ht = group_by(tg, match_id)
+mp = count(ht, player_dismissed)
+tf = group_by(mp,match_id)
+jh = summarise(tf,total_wickets = sum(n))
+mean(jh$total_wickets) #12.25
+median(jh$total_wickets) #12
+# AVERAGE OF 12 WICKETS TAKEN IN A MATCH
