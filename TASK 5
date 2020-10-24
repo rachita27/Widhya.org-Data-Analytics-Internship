@@ -1,0 +1,104 @@
+library(readxl)
+da= read_excel("matches_SHORT.xlsx",sheet = 1)
+table(da$team1)
+
+library(dplyr)
+library(ggplot2)
+library(plotly)
+
+teamm = c("MI", "KKR")
+season= filter(da, team1 %in% teamm, team2 %in% teamm)
+table(season$team2)
+##played in total 25 matches against each other
+
+     ##########
+#### Question 1 ####
+     ##########
+
+###WINNERS###
+mk = ggplot(season, aes(x= winner))+geom_bar(aes(fill = factor(winner)))
+ggplotly(mk)
+## out of 25 matches 19 matches won by MI & 6 matches by KKR
+
+pk = ggplot(da, aes(x= winner))+geom_bar(aes(fill = factor(winner)))
+ggplotly(pk)
+## in IPL in total MI won 109 matches, KKR 92 matches.
+
+###THUS, CAN CONCLUDE THAT MI is more likely to win.
+
+###WIN BY RUNS###
+tk = ggplot(season, aes(x=winner, y = win_by_runs))+geom_boxplot(aes(fill = factor(winner)))
+ggplotly(tk)
+##average win by runs is higher for KKR than MI
+
+ggplot(da, aes(x=winner, y = win_by_runs))+geom_boxplot(aes(fill = factor(winner)))
+##average win by run same 
+
+###WIN BY WICKETS###
+tM = ggplot(season, aes(x=winner, y = win_by_wickets))+geom_boxplot(aes(fill = factor(winner)))
+ggplotly(tM)
+##average win by WICKETS is higher for MI THAN KKR
+
+ggplot(da, aes(x=winner, y = win_by_wickets))+geom_boxplot(aes(fill = factor(winner)))
+
+##CONCLUSION - MI WON MORE MATCHES AGAINST KKR THE GAME PLAYED AS OPPONENT. ALSO, MORE MATCHES IN TOTAL IN IPL IN COMPARISON TO KKR
+
+     ##########
+#### Question 2 ####
+     ##########
+gg = read.csv("dismissed_noblank.csv")
+table(gg$batting_team)
+table(gg$player_dismissed)
+str(gg)
+
+teamd = c("Kolkata Knight Riders", "Mumbai Indians")
+overs= 6:15
+dff = filter(gg, batting_team == "Mumbai Indians", bowling_team == "Kolkata Knight Riders", over %in% overs  )
+table(dff$over)
+table(dff$match_id)
+  
+jh = group_by(dff, match_id)
+kj = count(jh, player_dismissed)
+gru = group_by(kj,match_id)
+fina = summarise(gru, no_ofplayer_dismissed = sum(n))
+mean(fina$no_ofplayer_dismissed)
+
+## CONCLUSION- average number of player dismissed is 2.45 ~ 2.5~ 3 approx player will be bowled in over 6-15
+
+     ##########
+#### Question 3 ####
+     ##########
+gf = read.csv("deliveries.csv")
+datg = filter(gf, batting_team == "Kolkata Knight Riders", bowling_team == "Mumbai Indians", batsman_runs == 4)
+
+hg = group_by(datg, match_id)
+ds = count(hg, batsman_runs)
+mean(ds$n)
+## CONCLUSION : 13.2 ~ 13 fours hit by KKR 
+
+     ##########
+#### Question 4 ####
+     ##########
+gfd = filter(gf, batting_team %in% teamd, bowling_team %in% teamd)
+hgf = group_by(gfd, match_id)
+kjh = summarise(hgf, totalruns = sum(total_runs))
+mean(kjh$totalruns)
+## Conclusion: 307.4 average total runs in match
+
+     ##########
+#### Question 5 ####
+     ##########
+dta = filter(gg, batting_team == "Mumbai Indians", bowling_team == "Kolkata Knight Riders", batsman == "RG Sharma")
+table(dta$player_dismissed)
+
+kh = ggplot(dta, aes(x=dismissal_kind))+geom_bar(aes(fill = factor(dismissal_kind)))
+ggplotly(kh)
+##ROHIT SHARMA - in 7 matches caught, 2- bowled, caught & bowled -1, lbw-3 (in matches played against KKR)
+
+da = filter(gg, batting_team == "Mumbai Indians", batsman == "RG Sharma")
+
+ku = ggplot(da, aes(x=dismissal_kind))+geom_bar(aes(fill = factor(dismissal_kind)))
+ggplotly(ku)
+## IN MATCHES AGAINST ALL THE TEAMS HE GOT BY CAUGHT, BOWLED, CAUGHT & BOWLED, LBW, RUN_OUT, STUMPED ARE 75, 17,5, 10,11,2 resp.
+
+
