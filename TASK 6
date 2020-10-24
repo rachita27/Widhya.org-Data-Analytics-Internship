@@ -1,0 +1,537 @@
+library(readxl)
+da= read_excel("matches_SHORT.xlsx",sheet = 1)
+table(da$team1)
+
+library(dplyr)
+library(ggplot2)
+library(plotly)
+
+teamms = c("CSK","DC","DD")
+
+     ##########
+#### Question 1 ####
+     ##########
+
+##WINNERS
+hk = filter(da,team1 %in% teamms, team2 %in% teamms)
+table(hk$team1)
+
+kg = ggplot(hk,aes(x=winner))+geom_bar(aes(fill= factor(winner)))
+ggplotly(kg)
+##OUT OF 21 MATCHES CSK WON 15 MATCHES & DD WON 6 MATCHES & DC NONE. SO, CAN SAY MORE LIKELY CSK WIN
+
+gf = ggplot(da,aes(x=winner))+geom_bar(aes(fill= factor(winner)))
+ggplotly(gf)
+##CSK - 100 MATCHES, DD (67) & DC(10 matches) TOGETHER WON 77 MATCHES 
+
+###SO CAN CONCLUDE MORE LIKELY CSK WINS.
+
+     ##########
+#### Question 2 ####
+     ##########
+hff = read.csv("deliveries.csv")
+  c("Chennai Super Kings","Delhi Daredevils","Delhi Capitals")
+dc= c("Delhi Capitals","Delhi Daredevils")
+jk = filter(hff, batting_team == "Chennai Super Kings", bowling_team %in% dc )
+table(jk$bowling_team)
+
+fd= group_by(jk,match_id)
+fi = summarise(fd, totalruns = sum(total_runs))
+fi
+mean(fi$totalruns)
+#163.9
+
+     ##########
+#### Question 3 ####
+     ##########
+dat = filter(hff, batting_team %in% dc, bowling_team == "Chennai Super Kings" )
+table(dat$match_id)
+
+dat$ballnumber = NA
+
+
+k = 1 
+z = 1
+p = 1
+a = 1 
+b = 1
+c = 1
+d = 1 
+e = 1
+f = 1
+g = 1 
+h = 1
+l = 1
+m = 1 
+n = 1
+q = 1
+r = 1 
+s = 1
+t = 1
+u = 1 
+v = 1
+w = 1
+
+for(j in 1:nrow(dat)){
+    if(dat$match_id[j] == 79){
+      dat$ballnumber[j] = k
+      k = k+1
+    } else if (dat$match_id[j] == 87){
+      dat$ballnumber[j] = z
+      z = z+1
+    } else if (dat$match_id[j] == 125){
+      dat$ballnumber[j] = p
+      p = p+1
+    } else if (dat$match_id[j] == 141){
+      dat$ballnumber[j] = a
+      a = a+1
+    } else if (dat$match_id[j] == 185){
+      dat$ballnumber[j] = b
+      b = b+1
+    } else if (dat$match_id[j] == 224){
+      dat$ballnumber[j] = c
+      c = c+1
+    } else if (dat$match_id[j] == 289){
+      dat$ballnumber[j] = d
+      d = d+1
+    } else if (dat$match_id[j] == 318){
+      dat$ballnumber[j] = e
+      e = e+1
+    } else if (dat$match_id[j] == 364){
+      dat$ballnumber[j] = f
+      f = f+1
+    } else if (dat$match_id[j] == 380){
+      dat$ballnumber[j] = g
+      g = g+1
+    } else if (dat$match_id[j] == 404){
+      dat$ballnumber[j] = h
+      h = h+1
+    } else if (dat$match_id[j] == 446){
+      dat$ballnumber[j] = l
+      l = l+1
+    } else if (dat$match_id[j] == 465){
+      dat$ballnumber[j] = m
+      m = m+1
+    } else if (dat$match_id[j] == 483){
+      dat$ballnumber[j] = n
+      n = n+1
+    } else if (dat$match_id[j] == 519){
+      dat$ballnumber[j] = q
+      q = q+1
+    } else if (dat$match_id[j] == 565){
+      dat$ballnumber[j] = r
+      r = r+1
+    } else if (dat$match_id[j] == 7923){
+      dat$ballnumber[j] = s
+      s = s+1
+    } else if (dat$match_id[j] == 7945){
+      dat$ballnumber[j] = t
+      t = t+1
+    } else if (dat$match_id[j] == 11141){
+      dat$ballnumber[j] = u
+      u = u+1
+    } else if (dat$match_id[j] == 11341){
+      dat$ballnumber[j] = v
+      v = v+1
+    } else {
+      dat$ballnumber[j] = w
+      w = w+1
+    } 
+}
+
+numberball = 91:120
+act = filter(dat, ballnumber %in% numberball)
+## act data set include all the records for ball number 91 to 120
+table(act$ballnumber)
+
+act2 <- act[-which(act$player_dismissed == ""), ]
+table(act2$player_dismissed)
+
+gru = group_by(act2, match_id)
+cnt = count(gru, player_dismissed)
+cnt
+grup1 = group_by(cnt, match_id)
+fi = summarise(grup1, total_bowled_byCSK =sum(n))
+fi
+mean(fi$total_bowled_byCSK) ##mean ~2.56 ~ 2.6 ~ 3 players bowled out
+median(fi$total_bowled_byCSK)
+
+     ##########
+#### Question 4 ####
+     ##########
+ghf = read.csv("deliveries.csv")
+colnames(ghf)
+mh = filter(ghf, batting_team == "Chennai Super Kings", bowling_team %in% dc)
+table(mh$match_id)
+
+mh$ballnumber = NA
+
+k = 1 
+z = 1
+p = 1
+a = 1 
+b = 1
+c = 1
+d = 1 
+e = 1
+f = 1
+g = 1 
+h = 1
+l = 1
+m = 1 
+n = 1
+q = 1
+r = 1 
+s = 1
+t = 1
+u = 1 
+v = 1
+w = 1
+
+for(j in 1:nrow(mh)){
+  if(mh$match_id[j] == 79){
+    mh$ballnumber[j] = k
+    k = k+1
+  } else if (mh$match_id[j] == 87){
+    mh$ballnumber[j] = z
+    z = z+1
+  } else if (mh$match_id[j] == 125){
+    mh$ballnumber[j] = p
+    p = p+1
+  } else if (mh$match_id[j] == 141){
+    mh$ballnumber[j] = a
+    a = a+1
+  } else if (mh$match_id[j] == 185){
+    mh$ballnumber[j] = b
+    b = b+1
+  } else if (mh$match_id[j] == 224){
+    mh$ballnumber[j] = c
+    c = c+1
+  } else if (mh$match_id[j] == 289){
+    mh$ballnumber[j] = d
+    d = d+1
+  } else if (mh$match_id[j] == 318){
+    mh$ballnumber[j] = e
+    e = e+1
+  } else if (mh$match_id[j] == 364){
+    mh$ballnumber[j] = f
+    f = f+1
+  } else if (mh$match_id[j] == 380){
+    mh$ballnumber[j] = g
+    g = g+1
+  } else if (mh$match_id[j] == 404){
+    mh$ballnumber[j] = h
+    h = h+1
+  } else if (mh$match_id[j] == 446){
+    mh$ballnumber[j] = l
+    l = l+1
+  } else if (mh$match_id[j] == 465){
+    mh$ballnumber[j] = m
+    m = m+1
+  } else if (mh$match_id[j] == 483){
+    mh$ballnumber[j] = n
+    n = n+1
+  } else if (mh$match_id[j] == 519){
+    mh$ballnumber[j] = q
+    q = q+1
+  } else if (mh$match_id[j] == 565){
+    mh$ballnumber[j] = r
+    r = r+1
+  } else if (mh$match_id[j] == 7923){
+    mh$ballnumber[j] = s
+    s = s+1
+  } else if (mh$match_id[j] == 7945){
+    mh$ballnumber[j] = t
+    t = t+1
+  } else if (mh$match_id[j] == 11141){
+    mh$ballnumber[j] = u
+    u = u+1
+  } else if (mh$match_id[j] == 11341){
+    mh$ballnumber[j] = v
+    v = v+1
+  } else {
+    mh$ballnumber[j] = w
+    w = w+1
+  } 
+}
+
+unique(mh$match_id)
+
+uni = unique(mh$match_id)
+uni[1]
+length(uni)
+
+#ANSWER 4
+
+da1 = filter(mh, match_id == uni[1])
+nrow(da1)
+add1 = NA
+ball1 = NA
+over1 = NA
+for(i in 2:nrow(da1)){
+  add1[i-1] = sum(da1$total_runs[1:i])
+  ball1[i-1] = da1$ballnumber[i]
+  over1[i-1] = da1$match_id[i-1]
+}
+frame1 = data.frame("CUMM_SUM" = add1,"BALL_NUMBER" = ball1,"MATCH_ID" = over1 )
+
+da2 = filter(mh, match_id == uni[2])
+nrow(da2)
+add2 = NA
+ball2 = NA
+over2 = NA
+for(i in 2:nrow(da2)){
+  add2[i-1] = sum(da2$total_runs[1:i])
+  ball2[i-1] = da2$ballnumber[i]
+  over2[i-1] = da2$match_id[i-1]
+}
+frame2 = data.frame("CUMM_SUM" = add2,"BALL_NUMBER" = ball2,"MATCH_ID" = over2 )
+
+da3 = filter(mh, match_id == uni[3])
+nrow(da3)
+add3 = NA
+ball3 = NA
+over3 = NA
+for(i in 2:nrow(da3)){
+  add3[i-1] = sum(da3$total_runs[1:i])
+  ball3[i-1] = da3$ballnumber[i]
+  over3[i-1] = da3$match_id[i-1]
+}
+frame3 = data.frame("CUMM_SUM" = add3,"BALL_NUMBER" = ball3,"MATCH_ID" = over3 )
+
+da4 = filter(mh, match_id == uni[4])
+
+add4 = NA
+ball4 = NA
+over4 = NA
+for(i in 2:nrow(da4)){
+  add4[i-1] = sum(da4$total_runs[1:i])
+  ball4[i-1] = da4$ballnumber[i]
+  over4[i-1] = da4$match_id[i-1]
+}
+frame4 = data.frame("CUMM_SUM" = add4,"BALL_NUMBER" = ball4,"MATCH_ID" = over4 )
+
+da5 = filter(mh, match_id == uni[5])
+add5 = NA
+ball5 = NA
+over5 = NA
+for(i in 2:nrow(da5)){
+  add5[i-1] = sum(da5$total_runs[1:i])
+  ball5[i-1] = da5$ballnumber[i]
+  over5[i-1] = da5$match_id[i-1]
+}
+frame5 = data.frame("CUMM_SUM" = add5,"BALL_NUMBER" = ball5,"MATCH_ID" = over5 )
+
+da6 = filter(mh, match_id == uni[6])
+add6 = NA
+ball6 = NA
+over6 = NA
+for(i in 2:nrow(da6)){
+  add6[i-1] = sum(da6$total_runs[1:i])
+  ball6[i-1] = da6$ballnumber[i]
+  over6[i-1] = da6$match_id[i-1]
+}
+frame6 = data.frame("CUMM_SUM" = add6,"BALL_NUMBER" = ball6,"MATCH_ID" = over6 )
+
+da7 = filter(mh, match_id == uni[7])
+add7 = NA
+ball7 = NA
+over7 = NA
+for(i in 2:nrow(da7)){
+  add7[i-1] = sum(da7$total_runs[1:i])
+  ball7[i-1] = da7$ballnumber[i]
+  over7[i-1] = da7$match_id[i-1]
+}
+frame7 = data.frame("CUMM_SUM" = add7,"BALL_NUMBER" = ball7,"MATCH_ID" = over7 )
+
+da8 = filter(mh, match_id == uni[8])
+add8 = NA
+ball8 = NA
+over8= NA
+for(i in 2:nrow(da8)){
+  add8[i-1] = sum(da8$total_runs[1:i])
+  ball8[i-1] = da8$ballnumber[i]
+  over8[i-1] = da8$match_id[i-1]
+}
+
+frame8 = data.frame("CUMM_SUM" = add8,"BALL_NUMBER" = ball8,"MATCH_ID" = over8 )
+
+da9 = filter(mh, match_id == uni[9])
+add9 = NA
+ball9 = NA
+over9 = NA
+for(i in 2:nrow(da9)){
+  add9[i-1] = sum(da9$total_runs[1:i])
+  ball9[i-1] = da9$ballnumber[i]
+  over9[i-1] = da9$match_id[i-1]
+}
+frame9 = data.frame("CUMM_SUM" = add9,"BALL_NUMBER" = ball9,"MATCH_ID" = over9 )
+
+da10 = filter(mh, match_id == uni[10])
+add10 = NA
+ball10 = NA
+over10 = NA
+for(i in 2:nrow(da10)){
+  add10[i-1] = sum(da10$total_runs[1:i])
+  ball10[i-1] = da10$ballnumber[i]
+  over10[i-1] = da10$match_id[i-1]
+}
+frame10 = data.frame("CUMM_SUM" = add10,"BALL_NUMBER" = ball10,"MATCH_ID" = over10 )
+
+da11 = filter(mh, match_id == uni[11])
+add11 = NA
+ball11 = NA
+over11 = NA
+for(i in 2:nrow(da11)){
+  add11[i-1] = sum(da11$total_runs[1:i])
+  ball11[i-1] = da11$ballnumber[i]
+  over11[i-1] = da11$match_id[i-1]
+}
+frame11 = data.frame("CUMM_SUM" = add11,"BALL_NUMBER" = ball11,"MATCH_ID" = over11 )
+
+da12 = filter(mh, match_id == uni[12])
+add12 = NA
+ball12 = NA
+over12 = NA
+for(i in 2:nrow(da12)){
+  add12[i-1] = sum(da12$total_runs[1:i])
+  ball12[i-1] = da12$ballnumber[i]
+  over12[i-1] = da12$match_id[i-1]
+}
+frame12 = data.frame("CUMM_SUM" = add12,"BALL_NUMBER" = ball12,"MATCH_ID" = over12 )
+
+da13 = filter(mh, match_id == uni[13])
+add13 = NA
+ball13 = NA
+over13 = NA
+for(i in 2:nrow(da13)){
+  add13[i-1] = sum(da13$total_runs[1:i])
+  ball13[i-1] = da13$ballnumber[i]
+  over13[i-1] = da13$match_id[i-1]
+}
+frame13 = data.frame("CUMM_SUM" = add13,"BALL_NUMBER" = ball13,"MATCH_ID" = over13 )
+
+da14 = filter(mh, match_id == uni[14])
+add14 = NA
+ball14 = NA
+over14 = NA
+for(i in 2:nrow(da14)){
+  add14[i-1] = sum(da14$total_runs[1:i])
+  ball14[i-1] = da14$ballnumber[i]
+  over14[i-1] = da14$match_id[i-1]
+}
+frame14 = data.frame("CUMM_SUM" = add14,"BALL_NUMBER" = ball14,"MATCH_ID" = over14 )
+
+da15 = filter(mh, match_id == uni[15])
+add15 = NA
+ball15 = NA
+over15 = NA
+for(i in 2:nrow(da15)){
+  add15[i-1] = sum(da15$total_runs[1:i])
+  ball15[i-1] = da15$ballnumber[i]
+  over15[i-1] = da15$match_id[i-1]
+}
+frame15 = data.frame("CUMM_SUM" = add15,"BALL_NUMBER" = ball15,"MATCH_ID" = over15 )
+
+da16 = filter(mh, match_id == uni[16])
+add16 = NA
+ball16 = NA
+over16 = NA
+for(i in 2:nrow(da16)){
+  add16[i-1] = sum(da16$total_runs[1:i])
+  ball16[i-1] = da16$ballnumber[i]
+  over16[i-1] = da16$match_id[i-1]
+}
+frame16 = data.frame("CUMM_SUM" = add16,"BALL_NUMBER" = ball16,"MATCH_ID" = over16 )
+
+da17 = filter(mh, match_id == uni[17])
+add17 = NA
+ball17 = NA
+over17 = NA
+for(i in 2:nrow(da17)){
+  add17[i-1] = sum(da17$total_runs[1:i])
+  ball17[i-1] = da17$ballnumber[i]
+  over17[i-1] = da17$match_id[i-1]
+}
+frame17 = data.frame("CUMM_SUM" = add17,"BALL_NUMBER" = ball17,"MATCH_ID" = over17 )
+
+da18 = filter(mh, match_id == uni[18])
+add18 = NA
+ball18 = NA
+over18 = NA
+for(i in 2:nrow(da18)){
+  add18[i-1] = sum(da18$total_runs[1:i])
+  ball18[i-1] = da18$ballnumber[i]
+  over18[i-1] = da18$match_id[i-1]
+}
+frame18 = data.frame("CUMM_SUM" = add18,"BALL_NUMBER" = ball18,"MATCH_ID" = over18)
+
+da19 = filter(mh, match_id == uni[19])
+add19 = NA
+ball19 = NA
+over19 = NA
+for(i in 2:nrow(da19)){
+  add19[i-1] = sum(da19$total_runs[1:i])
+  ball19[i-1] = da19$ballnumber[i]
+  over19[i-1] = da19$match_id[i-1]
+}
+frame19 = data.frame("CUMM_SUM" = add19,"BALL_NUMBER" = ball19,"MATCH_ID" = over19)
+
+da20 = filter(mh, match_id == uni[20])
+add20 = NA
+ball20 = NA
+over20 = NA
+for(i in 2:nrow(da20)){
+  add20[i-1] = sum(da20$total_runs[1:i])
+  ball20[i-1] = da20$ballnumber[i]
+  over20[i-1] = da20$match_id[i-1]
+}
+frame20 = data.frame("CUMM_SUM" = add20,"BALL_NUMBER" = ball20,"MATCH_ID" = over20)
+
+da21 = filter(mh, match_id == uni[21])
+add21 = NA
+ball21 = NA
+over21 = NA
+for(i in 2:nrow(da21)){
+  add21[i-1] = sum(da21$total_runs[1:i])
+  ball21[i-1] = da21$ballnumber[i]
+  over21[i-1] = da21$match_id[i-1]
+}
+frame21 = data.frame("CUMM_SUM" = add21,"BALL_NUMBER" = ball21,"MATCH_ID" = over21)
+
+final_frame = rbind(frame1,frame2,frame3,frame4,frame5,frame6,frame7,frame8,frame9,frame10,frame11,frame12,frame13,frame14,frame15,frame16,frame17,frame18,frame19,frame20,frame21)
+unique(final_frame$CUMM_SUM)
+unique(final_frame$MATCH_ID)
+table(final_frame$CUMM_SUM)
+hundred_runs = filter(final_frame, CUMM_SUM == 100 | CUMM_SUM == 101| CUMM_SUM == 102 | CUMM_SUM == 103 |CUMM_SUM == 105 ) #79, 141,185,289,364,380,404,465,483,519,565,7923,7945,
+head(hundred_runs,6)
+table(hundred_runs$MATCH_ID)
+table(final_frame$CUMM_SUM)
+median(hundred_runs$BALL_NUMBER) # AVERAGE 82 BALLS TO SCORE 100 
+mean(hundred_runs$BALL_NUMBER) ## MEDIAN 88.14 BALLS TO SCORE 100
+
+jh = group_by(hundred_runs, MATCH_ID)
+lk = group_by(jh, BALL_NUMBER)
+ds = summarise(lk, cum_sum = min(CUMM_SUM))
+where(i<= length)
+if()
+
+h = c(3,4,5,6,8,9,12,13,15,16,17,19,20,21,23,24,25,26,27,29,33,34,36,38,40,41,42,43,44,45,46,48,49,51,52,53,54,56,57,59,60,61)
+mj = hundred_runs[-h,]
+median(mj$BALL_NUMBER) # AVERAGE 79 BALLS TO SCORE 100 
+mean(mj$BALL_NUMBER) ## MEDIAN 81.14 BALLS TO SCORE 100
+
+     ##########
+#### Question 5 ####
+     ##########
+ghf = read.csv("deliveries.csv")
+jhk = c("Chennai Super Kings","Delhi Daredevils","Delhi Capitals")
+noball = c(1,2,3,5)
+fgh = filter(ghf, batting_team %in% jhk, bowling_team %in% jhk, noball_runs %in% noball)
+table(fgh$noball_runs)
+groupd = group_by(fgh, match_id)
+grouped= count(groupd,noball_runs) ##only one no ball runs that are 1
+grouped
+mean(grouped$n)
+##1.416 ~ 1 ball
+
