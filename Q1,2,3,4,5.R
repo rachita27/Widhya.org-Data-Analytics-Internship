@@ -1,157 +1,135 @@
 library(readxl)
-dat= read_excel("matches_SHORT.xlsx",sheet = 2)
-dat
+fd = read_excel("matches_SHORT.xlsx", sheet = 1)
+head(fd)
 
+library(dplyr)
+team = c("KXP","RCB")
+vs= filter(fd,team1 %in% team,team2 %in% team )
+head(vs)
+table(vs$team2)
+##they total played 24 matches
 library(ggplot2)
 library(plotly)
 
-str(dat)
-     ##########
-#### Question 1 ####
-     ##########
-l = ggplot(dat, aes(x= winner))+geom_bar( aes( fill = factor(winner)))
-l
-ggplotly(l)
-### 20 matches played out of which 9 matches DD & DC, 11 matches won by RR.
+      
+     #########
+#### Question1 ####
+     #########
+mb =ggplot(vs, aes(x=winner))+geom_bar(aes(fill = factor(winner)))
+ggplotly(mb)
+### both win equal 12, 12 matches against each other
 
-dg = read_excel("matches_SHORT.xlsx",sheet = 1)
-dg
-u = ggplot(dg, aes(x= winner))+geom_bar( aes( fill = factor(winner)))
-u
-ggplotly(u)
-## DC & DD IN TOTAL WON 77 MATCHES WHEREAS RR 75 MATCHES IN TOTAL
+kp=ggplot(fd, aes(x=winner))+geom_bar(aes(fill = factor(winner)))
+ggplotly(kp)
+##RCB won TOTAL 84 MATCHES & KXP 82 MATCHES
 
-jj = ggplot(dg, aes(x= win_by_wickets))+geom_histogram( aes( fill = factor(winner)),color = "black",bins = 10)
-jj
-ggplotly(jj)
-## RR- 46 matches won by for 2.5 and more wickets majorly for more than 5 wickets
-## DC & DD WON 47 MATCHES
+###WIN BY RUNS
+hg = ggplot(vs, aes(y=win_by_runs, x = winner))+geom_boxplot(aes(fill = factor(winner)))
+hg
+ggplotly(hg)
+## RCB's win_by_runs is higher comparison to KXP in matches played against each other
+###rcb- max 138, 111(kxp) upper range 32(kxp) and 85 (rcb)
+lg = ggplot(fd, aes(y=win_by_runs, x = winner))+geom_boxplot(aes(fill = factor(winner)))
+lg
+ggplotly(lg)
+## RCB's max win_by_runs & upper range is higher comparison to KXP in matches played against each other
+## rcb- max win 144 runs, kxp - 111 runs
 
-ll= ggplot(dat, aes(x= win_by_wickets))+geom_histogram( aes( fill = factor(winner)),color = "black",bins = 10)
-ll
-ggplotly(ll)
-###rr- won 6 MATCHES by 2 or more wickets or more by DC & DD whereas RR won 5 matches
+##WIN BY WICKETS
+kg = ggplot(vs, aes(y=win_by_wickets, x = winner))+geom_boxplot(aes(fill = factor(winner)))
+kg
+ggplotly(kg)
+vs_fa = filter(vs, winner== "KXP")
+head(vs_fa) 
+mean(vs_fa$win_by_wickets) ##4 kxp mean
+vs_far = filter(vs, winner== "RCB")
+mean(vs_far$win_by_wickets) #3 RCB
+##AVERAGE WIN_BY_WICKETS HIGHER FOR kxp, max win by wickets is higher of rcb-10, 9-kxp
 
-jk= ggplot(dg, aes(x= win_by_runs))+geom_histogram( aes( fill = factor(winner)),color = "black",bins = 10)+coord_cartesian(xlim= c(0,100))
-jk
-ggplotly(jk)
-##dd & dc won 12 matches and rr won 14 matches by runs greater than 25.
 
-
-ok= ggplot(dat, aes(x= win_by_runs))+geom_histogram( aes( fill = factor(winner)),color = "black",bins = 10)+coord_cartesian(xlim= c(0,100))
-ok
-ggplotly(ok)
-##win_by_runs - 5 matches (rr) + 2(dc)
-
-tt =ggplot(dat, aes(y= win_by_runs, x = winner))+geom_boxplot(aes( fill = factor(winner)))
-tt
-ggplotly(tt)
-##MEDIAN OF WIN BY RUNS OF DD IS 1 AND RR 0 & max winning same for both
-po =ggplot(dg, aes(y= win_by_runs, x = winner))+geom_boxplot(aes( fill = factor(winner)))
-po
-ggplotly(po)
-##dc max win by 39 runs & rr max won 34 runs against rest all teams
-
-tl =ggplot(dat, aes(y= win_by_wickets, x = winner))+geom_boxplot(aes( fill = factor(winner)))
-tl
-ggplotly(tl)
-##win_by wickets average is rr-  6 , dd - meadin 0 (right skewed mean little above), DC- 6wickets (Average)
-
-tp =ggplot(dg, aes(y= win_by_wickets, x = winner))+geom_boxplot(aes( fill = factor(winner)))
-tp
-ggplotly(tp)
-##dd average 5(dd) , rr(4) - win by wickets
+mg = ggplot(fd, aes(y=win_by_wickets, x = winner))+geom_boxplot(aes(fill = factor(winner)))
+mg
+ggplotly(mg)
+###approximately average is same & max is also same
 
      ##########
-#### QUESTION 2 ####
+#### Question 2 ####
      ##########
-table(dat$id)
-innings = read.csv("deliveries_SHORT.csv")
-head(innings) ##data set of batting team DD and bowling RR & filtered overs first six overs
 
-team = c("Delhi Daredevils","Delhi Capitals","Rajasthan Royals")
-library(dplyr)
-ncol(innings)
-inn = innings[,c(1,3,4,5,18)]
-head(inn)
-inn_new = inn %>% group_by(match_id)
-head(inn_new)
-inn_new%>% summarise(total_runs = sum(total_runs))
-six_innings =inn_new%>% summarise(total_runs = sum(total_runs))
-##shows the sum of total runs by DC in first six innings of each match
-
-sum(six_innings)
-mean(six_innings$total_runs) 
-##47.65 runs on an average DC will score in first 6 over
+match = read.csv("dismissed_noblank.csv")
+matchs = filter(match, batting_team == "Kings XI Punjab", bowling_team == "Royal Challengers Bangalore")
+table(matchs$player_dismissed)
+table(matchs$batting_team)
+str(matchs)
+groupd = group_by(matchs, match_id)
+ds = count(groupd,player_dismissed)
+ds
+hs = group_by(ds,match_id)
+ks= summarise(hs,wicket_loss_KXIP = sum(n))
+ks
+mean(ks$wicket_loss_KXIP)
+##5.625 wicket loss aprrox 6 wickets
 
      ##########
 #### Question 3 ####
      ##########
-kat = read.csv("deliveries_SH.csv")
-head(kat)
-nrow(kat)
-team = c("Delhi Daredevils","Delhi Capitals","Rajasthan Royals")
-batman =filter(kat, batting_team %in% team ,bowling_team %in% team, batsman == "SPD Smith")
-table(batsman$bowling_team)
-table(batsman$match_id)
-head(batsman)
-nrow(batsman)
-grouped = group_by(batsman,match_id)
-final = summarise(grouped,total_runs = sum(total_runs))
-mean(final$total_runs) 
-##31 runs in just 2 matches played against rajasthan royals so best to judge by his average rate in all matches
-##before RAJASTHAN ROYALS he was in RISING PUNE SEARGIANT & PUNE WARRIORS
+mat = read.csv("deliveries.csv")
+partnership = c("AB de Villiers", "V Kohli")
+teams = filter(mat, batting_team == "Royal Challengers Bangalore", bowling_team == "Kings XI Punjab" )
 
-batsm =filter(kat, batsman == "SPD Smith")
-table(batsm$batting_team)
-nrow(batsm)
-head(batsm)
-grouped_2 = group_by(batsm,match_id)
-total_run_smith = summarise(grouped_2, total_runs = sum(total_runs))
-mean(total_run_smith$total_runs)
-#29.625 average rate of smith
-     
+## ab devilers and v. kohli partnership data
+partner_data = filter(teams, batsman %in% partnership, non_striker %in% partnership)
+
+head(partner_data)
+table(partner_data$non_striker)
+ 
+grup = group_by(partner_data, match_id)
+kop = summarise(grup, totalrun_by_partners = sum(total_runs))
+kop
+mean(kop$totalrun_by_partners)
+## 17.1428 average run by their partnership
+
      ##########
 #### Question 4 ####
      ##########
-kat = read.csv("deliveries_SH.csv")
-nrow(kat)
-head(kat)
-runs = c(1,2,3,5)
-wid =filter(kat, batting_team %in% team, bowling_team %in% team,wide_runs %in% runs)
-nrow(wid)
-table(wid$wide_runs)
 
-nrow(wid)
-table(new$wide_runs)
+tt= c("Royal Challengers Bangalore","Kings XI Punjab")
 
-gh = group_by(wid, match_id)
-gh
-kk= count(gh, wide_runs)
-table(kk$wide_runs)
+##data of the two teams and taken care of 6's hit by batsman   
+team2 = filter(mat, batting_team %in% tt, bowling_team %in% tt, batsman_runs == 6)
+ 
+head(team2)
+table(team2$batting_team)
 
-kt = group_by(kk, match_id) 
-gt = summarise(kt, wide_ball_number = sum(n))
-mean(gt$wide_ball_number)
-##on an average 7.3 wide balls in match
+gr = group_by(team2,match_id)
+sixes = count(gr, batsman_runs)
+sixes
+mean(sixes$n) ## average  of 12.04 sixes
+
+y = filter(mat, batting_team %in% tt, bowling_team %in% tt, total_runs == 6)
+
+head(team2)
+table(team2$batting_team)
+
+x = group_by(y,match_id)
+six= count(x, total_runs)
+six
+mean(six$n) ##11.91 approx 12 runs
+
 
      ##########
 #### Question 5 ####
      ##########
- 
-hf = read.csv("last.csv")
-gat =filter(hf, batting_team %in% team, bowling_team %in% team )
-head(gat)
-nrow(gat)
 
+no_ball = c(1,2,3,5)
+kopo = filter(mat, batting_team %in% tt, bowling_team %in% tt, noball_runs %!in% c(0))
+table (kopo$noball_runs)
+table(kopo$batting_team)
 
-hg = group_by(gat, match_id)
-
-ko = count(hg, player_dismissed)
-ko
-
-hg = group_by(ko, match_id)
-hg
-ok= summarise(hg, number_of_players_bowled = sum(n))
-ok
-mean(ok$number_of_players_bowled)
+gp = group_by(kopo, match_id)
+ct = count(gp,noball_runs)
+pt = group_by(ct, match_id)
+ht = summarise(pt, number_of_noballs = sum(n) )
+ht
+mean(ht$number_of_noballs)
+##average of no balls are 1.714 approx 2
