@@ -1,0 +1,107 @@
+library(readxl)
+dai = read_excel("matches_SHORT.xlsx",sheet = 1)
+table(dai$team1)
+
+library(dplyr)
+library(ggplot2)
+library(plotly)
+
+ds = c("KXP","KKR")
+jki = filter(dai, team1 %in% ds, team2 %in% ds)
+
+##########
+#### Question 1 ####
+##########
+
+tq= ggplot(jki, aes(winner))+geom_bar(aes(fill = winner))
+ggplotly(tq)
+##KKR won 17 matches out of 25 matches played against KXIP.
+
+tp= ggplot(dai, aes(winner))+geom_bar(aes(fill = winner))
+ggplotly(tp)
+##KKR won 92 matches, KXIP won 82 matches in total
+
+##########
+#### Question 2 ####
+##########
+
+dhj = read.csv("deliveries.csv")
+ms = c("Kolkata Knight Riders", "Kings XI Punjab")
+sa = filter(dhj, batting_team %in% ms, bowling_team %in% ms, total_runs == 0)
+sa
+ee = group_by(sa, match_id)
+zv = count(ee, total_runs)
+mean(zv$n) #80.04 dot balls 
+median(zv$n) # 80 dot balls
+
+##thus total dot balls expected is 80 balls.
+
+##########
+#### Question 3 ####
+##########
+bn = 1:6
+ka = filter(dhj, batting_team %in% ms, bowling_team %in% ms, ball %in% bn)
+ka
+opa = unique(ka$match_id)
+uhg = unique(ka$bowling_team)
+ka$ballno = NA
+
+for(i in 1:length(opa)){
+  for(j in 1:length(uhg)){
+    m = 1
+    for(k in 1:nrow(ka)){
+      if(ka$match_id[k] == opa[i] & ka$bowling_team[k]== uhg[j]){
+        ka$ballno[k] = m
+        m=m+1
+      }
+    }
+  }
+}
+ba = 90:120
+"%!in%" = Negate("%in%")
+act = filter(ka, ballno %in% ba,player_dismissed %!in% "" )
+
+mg = act %>% group_by(match_id, bowling_team)
+wq = count(mg,player_dismissed)
+sk = summarise(wq,players_out_total = sum(n))
+ig = group_by(sk, match_id)
+lm = summarise(ig, total_bowled_out = sum(players_out_total))
+mean(lm$total_bowled_out) #4.208333
+median(lm$total_bowled_out) #4
+##can conclude 4 WKTS will fall in 91st to 120th balls in both the innings.
+
+##########
+#### Question 4 #### 
+##########
+
+gx = filter(dhj, batting_team == "Kings XI Punjab", bowling_team == "Kolkata Knight Riders", batsman == "GJ Maxwell")
+mo = unique(gx$match_id)
+##maxwell total runs
+jx = group_by(gx,match_id)
+tx = summarise(jx, total_runs_maxwell =sum(total_runs))
+
+##total runs of KXIP
+gp = filter(dhj, batting_team == "Kings XI Punjab", bowling_team == "Kolkata Knight Riders")
+unique(wa$match_id)
+##maxwell total runs
+jl = group_by(gp,match_id)
+vx = summarise(jl, total_runs_KXIP =sum(total_runs))
+os = inner_join(tx,vx, by =c("match_id"))
+os$maxwell_percentage = (os$total_runs_maxwell/os$total_runs_KXIP)*100 
+os$maxwell_percentage = round(os$maxwell_percentage,0)
+mean(os$maxwell_percentage) #17%
+median(os$maxwell_percentage) #14%
+getmode(os$maxwell_percentage)
+zc = ggplot(os, aes(x=maxwell_percentage))+geom_histogram(fill = "yellow", alpha = 0.5, col = "black")
+ggplotly(zc)
+## graph shows major points b/w band of 8% to 14%
+
+##########
+#### Question 5 ####
+##########
+no_ball = 1:5
+dg = filter(dhj, batting_team %in% ms, bowling_team %in% ms, noball_runs %in% no_ball)
+wxu = group_by(dg,match_id)
+fds = count(wxu, noball_runs)
+mean(fds$n) #1.22 approx 1 balls
+median(fds$n) # 1 no ball
