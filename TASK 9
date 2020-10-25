@@ -1,0 +1,120 @@
+library(readxl)
+dai = read_excel("matches_SHORT.xlsx",sheet = 1)
+table(dai$team1)
+
+library(dplyr)
+library(ggplot2)
+library(plotly)
+
+     ##########
+#### Question 1 ####
+     ##########
+tes = c("KXP","DC","DD")
+
+ty = filter(dai, team1 %in% tes, team2 %in% tes)
+table(ty$team1)
+ji = ggplot(ty,aes(x=winner))+geom_bar(aes(fill = factor(winner)))
+ggplotly(ji)
+##KXP-14, DD-9,DC-1, OUT OF 24 MATCHES KXP WON 14 MATCHES
+
+jio = ggplot(dai,aes(x=winner))+geom_bar(aes(fill = factor(winner)))
+ggplotly(jio)
+##KXP-82, 77-DD&DC DC-10, MORE LIKELY KXP WIN
+
+##########
+#### Question 2 ####
+##########
+dhj = read.csv("deliveries(1).csv")
+overs = 1:6
+gt = filter(dhj, batsman == "KL Rahul", over %in% overs)
+kj = group_by(gt, match_id)
+mj = count(kj,ball)
+balls = summarise(mj, number_of_balls = sum(n))
+
+runs = summarise(kj, total_runs = sum(total_runs))
+frames = cbind.data.frame(runs,balls[-1])
+frames$strike_rate = (frames$total_runs/frames$number_of_balls) * 100
+frames$strike_rate = round(frames$strike_rate,2)
+mean(frames$strike_rate) #124.2398
+median(frames$strike_rate) #123.53
+
+##########
+#### Question 3 ####
+##########
+
+lk = filter(dhj, batting_team == "Delhi Capitals")
+op = group_by(lk,match_id)
+team_runs = summarise(op,team_total = sum(total_runs))
+
+uy = filter(dhj, batting_team == "Delhi Capitals", batsman == "SS Iyer")
+uy
+tr = group_by(uy,match_id)
+iyer_runs = summarise(tr, iyer_runs = sum(total_runs))
+
+run = cbind.data.frame(team_runs,iyer_runs[-1])
+run$iyer_percent = (run$iyer_runs/run$team_total)*100
+run$iyer_percent = round(run$iyer_percent,2)
+mean(run$iyer_percent) #19.8125
+median(run$iyer_percent) #15.765
+ggplot(run,aes(x=iyer_percent))+geom_histogram(alpha=0.5, fill = "red", bins =50, col = "black")
+##so can say b/w 15-20% is iyer % contribution to total runs
+##SKEWED BEST IS TO USE MEDIAN IN THAT CASE.
+
+
+##########
+#### Question 4 ####
+##########
+tio = c("Delhi Capitals", "Delhi Daredevils")
+of = 6:20
+balls = 1:6
+"%!in%"=Negate("%in%")
+bow = c("Mohammed Shami")
+yt = c("")
+tg = filter(dhj,bowling_team == "Kings XI Punjab",batting_team %in% tio, ball %in% balls, over %in% of, bowler %!in% bow, player_dismissed %!in% yt)
+table(tg$batting_team)
+
+io = group_by(tg,match_id)
+tyu = count(io, player_dismissed)
+ou = summarise(tyu, wickets_taken =sum(n))
+mean(ou$wickets_taken) #4.69
+median(ou$wickets_taken) #5
+## can say 5 wickets
+
+##########
+#### Question 5 ####
+##########
+
+tg = filter(dhj,batting_team == "Kings XI Punjab",bowling_team %in% tio, batsman == "CH Gayle")
+jk = group_by(tg, match_id)
+count(jk, player_dismissed)
+## in the match against DC he was out
+mjq = count(jk,ball)
+ba = group_by(mjq,match_id)
+na =  summarise(mjq, number_of_balls = sum(n))
+
+run = summarise(jk, total_runs = sum(total_runs))
+fram1 = cbind.data.frame(run,na[-1])
+fram1$strike_rate = (fram1$total_runs/fram1$number_of_balls) * 100
+fram1$strike_rate = round(fram1$strike_rate,2)
+mean(frames1$strike_rate) #140.9575
+median(frames1$strike_rate) #153.57
+
+tgk = filter(dhj,batting_team == "Kings XI Punjab", batsman == "CH Gayle")
+jk1 = group_by(tgk, match_id)
+kj = count(jk1, player_dismissed)
+kl = count(kj,player_dismissed)
+length(table(kl$match_id)) #24 matches played
+table(kl$player_dismissed) #20 matches out
+## out of 24 matches in 20 matches he was out so status is OUT
+
+kjo = group_by(tgk, match_id)
+mjp = count(kjo,ball)
+balls1 = summarise(mjp, number_of_balls = sum(n))
+
+runs1 = summarise(kjo, total_runs = sum(total_runs))
+frames1 = cbind.data.frame(runs1,balls1[-1])
+frames1$strike_rate = (frames1$total_runs/frames1$number_of_balls) * 100
+frames1$strike_rate = round(frames1$strike_rate,2)
+mean(frames1$strike_rate) #140.9575
+median(frames1$strike_rate) #153.57
+##STRIKE RATE IS B/W 140 TO 153
