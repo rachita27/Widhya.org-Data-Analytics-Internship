@@ -1,0 +1,177 @@
+library(readxl)
+dai = read_excel("matches_SHORT.xlsx",sheet = 1)
+table(dai$team1)
+
+library(dplyr)
+library(ggplot2)
+library(plotly)
+
+ds = c("SH","KXP")
+jkk = filter(dai, team1 %in% ds, team2 %in% ds)
+
+##########
+#### Question 1 ####
+##########
+
+th= ggplot(jkk, aes(winner))+geom_bar(aes(fill = winner))
+ggplotly(th)
+##OUT OF 14 MATCHES THEY PLAYED SRH WON 10 MATCHES, 4 MATCHES played by KXIP.
+
+##########
+#### Question 2 ####
+##########
+
+##GOT OUT
+dhj = read.csv("deliveries.csv")
+
+sd = filter(dhj, batting_team == "Sunrisers Hyderabad", bowling_team == "Kings XI Punjab" , batsman == "DA Warner")
+length(unique(sd$match_id)) # 10 matches played
+
+vb = group_by(sd,match_id)
+lp = count(vb, player_dismissed)
+table(lp$player_dismissed)
+table(lp$match_id)
+nrow(sd)
+##out of 10 matches played 8 times DA WARNER GOT OUT.
+
+##STRIKE RATE
+
+ou = filter(dhj, batting_team == "Sunrisers Hyderabad", bowling_team == "Kings XI Punjab" , batsman == "DA Warner")
+table(ou$match_id)
+kj = group_by(ou, match_id)
+mj = count(kj,ball)
+balls = summarise(mj, number_of_balls = sum(n))
+
+runs = summarise(kj, total_runs = sum(total_runs))
+runs
+frames = cbind.data.frame(runs,balls[-1])
+frames$strike_rate = (frames$total_runs/frames$number_of_balls) * 100
+frames$strike_rate = round(frames$strike_rate,2)
+median(frames$strike_rate) #149.73
+mean(frames$strike_rate) #149.271
+
+#in all matches he played in IPL
+om = filter(dhj,  batsman == "DA Warner")
+table(om$match_id)
+kl = group_by(om, match_id)
+ml = count(kl,ball)
+ball = summarise(ml, number_of_balls = sum(n))
+
+run = summarise(kl, total_runs = sum(total_runs))
+runs
+frame = cbind.data.frame(run,ball[-1])
+frame$strike_rate = (frame$total_runs/frame$number_of_balls) * 100
+frame$strike_rate = round(frame$strike_rate,2)
+median(frame$strike_rate) #132.73
+mean(frame$strike_rate) # 128.017
+
+##IN ALL CASES STRIKE RATE IS GREATER THAN 125 & HE WAS 8 TIMES OUT OUT OF 10 MATCHES THUS MORE LIKELY TO OUT
+
+##########
+#### Question 3 ####
+##########
+ls = filter(dhj, batting_team == "Kings XI Punjab", bowling_team == "Sunrisers Hyderabad" )
+za = group_by(ls, match_id)
+rw = summarise(za, team_total = sum(total_runs))
+
+mt = filter(dhj, batting_team == "Kings XI Punjab", bowling_team == "Sunrisers Hyderabad" , batsman == "KL Rahul")
+zq = group_by(mt, match_id)
+rx= summarise(zq, KL_total = sum(total_runs))
+
+pj = merge(rw,rx, by = c("match_id"))
+pj$percentage = ((pj$KL_total)/(pj$team_total))*100
+pj$percentage = round(pj$percentage,0)
+mean(pj$percentage) # 33.25
+18/201
+median(pj$percentage) #36.5
+
+##all teams
+gh = c("Royal Challengers Bangalore", "Sunrisers Hyderabad","Kings XI Punjab")
+mt = filter(dhj, batting_team %in% gh)
+hg = group_by(mt,match_id)
+wq = summarise(hg, total_run_team = sum(total_runs))
+wq
+
+vb = filter(dhj, batting_team %in% gh, batsman == "KL Rahul")
+vx = group_by(vb, match_id)
+qa = summarise(vx, kl_runs = sum(total_runs))
+qa
+
+ov = merge(wq,qa)
+ov$percentage = (ov$kl_runs/ov$total_run_team)*100
+ov$percentage = round(ov$percentage , 0)
+median(ov$percentage )#14
+mean(ov$percentage )#18.5
+
+#KL RAHUL PLAYED 4 MATCHES AGAINST KXIP, the average percentage is 33.25%, median is 36.5%
+
+##########
+#### Question 4 ####
+##########
+
+ol = filter(dhj, batting_team == "Sunrisers Hyderabad", bowling_team == "Kings XI Punjab" )
+mb =unique(ol$match_id)
+ol$ball_no = NA
+for(i in 1:length(mb)){
+  m = 1
+  for(j in 1:nrow(ol)){
+    if(ol$match_id[j]== mb[i]){
+      ol$ball_no[j]=m
+      m = m + 1
+    }
+  }
+}
+
+
+add = c(NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA)
+tr =as.list(add)
+uy =as.list(add)
+
+for(j in 1:length(mb)){
+  
+  da2 = filter(ol, match_id == mb[j])
+  for(i in 1:nrow(da2)){
+    tr[[j]][i] = sum(da2$total_runs[1:i])
+    uy[[j]] = as.data.frame(tr[j])
+  }
+}
+
+names(uy[[1]]) = names(uy[[2]]) = names(uy[[3]])= names(uy[[4]])=names(uy[[5]]) =names(uy[[6]]) = names(uy[[7]])= names(uy[[8]])= names(uy[[9]])= names(uy[[10]]) = names(uy[[11]]) = names(uy[[12]]) = names(uy[[13]])= names(uy[[14]]) ="cummuative_total_runs"
+mk = do.call(rbind.data.frame, uy[1:24])
+
+set = ol[,c(1,22)]
+fr = cbind(set,mk)
+cumm = c(50:54)
+jh =filter(fr, cummuative_total_runs %in%cumm)
+table(jh$match_id)
+ml = group_by(jh,match_id) ##arange asc order so want smmalest no ball scoring 50, no need to arrange
+po = slice(ml,1:1)
+mean(po$ball_no) #39.42857 balls to score 50
+median(po$ball_no) #39.5 ball
+#can see that average 39 balls takes to score 50 runs by sunrise hyderbad
+
+##########
+#### Question 5 ####
+##########
+
+om = filter(dhj, batting_team == "Kings XI Punjab", bowling_team == "Sunrisers Hyderabad" , batsman == "CH Gayle")
+kn = unique(om$match_id)
+om$ball_no_gayle = NA
+for(i in 1:length(kn)){
+  m = 1
+  for(j in 1:nrow(om)){
+    if(om$match_id[j]== kn[i]){
+      om$ball_no_gayle[j]=m
+      m = m + 1
+    }
+  }
+}
+om
+bal = 1:10
+pl = filter(om, ball_no_gayle %in% bal )
+
+sa = group_by(pl, match_id)
+wa =summarise(sa, run_tenball_CH = sum(total_runs))
+mean(wa$run_tenball_CH) #12.5
+median(wa$run_tenball_CH) #12.5, 
+##can say avg runs in first 10 balls by gayle is 12.5 runs
