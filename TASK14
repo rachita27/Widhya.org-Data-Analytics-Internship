@@ -1,0 +1,303 @@
+library(readxl)
+dai = read_excel("matches_SHORT.xlsx",sheet = 1)
+table(dai$team1)
+
+library(dplyr)
+library(ggplot2)
+library(plotly)
+
+ds = c("MI","RR")
+jkk = filter(dai, team1 %in% ds, team2 %in% ds)
+
+##########
+#### Question 1 ####
+##########
+
+table(jkk$winner)
+th= ggplot(jkk, aes(winner))+geom_bar(aes(fill = winner))
+ggplotly(th)
+## MI & RR noth won 10 matches each against each other
+
+tp= ggplot(dai, aes(winner))+geom_bar(aes(fill = winner))
+ggplotly(tp)
+#MI won 109 matches, RR won 75 matches in total
+
+vb= ggplot(jkk, aes(x= winner, y = win_by_runs))+geom_boxplot(aes(fill = winner))
+ggplotly(vb)
+##boxplot shows average(as it is right skewed) win_by_runs higher for MI than RR in matches played against each other
+
+ol= ggplot(jkk, aes(x= winner, y = win_by_wickets))+geom_boxplot(aes(fill = winner))
+ggplotly(ol)
+##win_by_wkts higher for RR than MI
+
+##########
+#### Question 2 ####
+##########
+dhj = read.csv("deliveries.csv")
+mb = c("Mumbai Indians", "Rajasthan Royals")
+
+sd = filter(dhj, batting_team %in% mb, bowling_team %in% mb)
+table(sd$batting_team)
+
+##total number of balls corresponding to batsman
+bx = unique(sd$match_id)
+bg = unique(sd$batsman)
+sd$batsman_ball_number = NA
+
+for(i in 1:length(bx)){
+  for(j in 1:length(bg)){
+    m = 1
+    for(n in 1:nrow(sd)){
+      if(sd$match_id[n] == bx[i] & sd$batsman[n] == bg[j]){
+        sd$batsman_ball_number[n]= m
+        m = m+1
+      }
+    }
+  }
+}
+
+qa = sd %>% group_by(match_id,batsman)
+vi = count(qa, batsman_ball_number)
+lm = summarise(vi, batsman_total_ball_faced = sum(n))
+kl = group_by(lm, batsman)
+to = summarise(kl,average_ball_number = mean(batsman_total_ball_faced))
+fd = filter(to, average_ball_number >= 10 )
+ld = unique(fd$batsman)
+##data set for rest parts
+
+pw = filter(sd, batsman %in% ld)
+ws = pw %>% group_by(match_id,batsman)
+
+##TOTAL RUNS SCORED
+ra = summarise(ws, batsman_total_runs = sum(batsman_runs))
+sz= group_by(ra, batsman)
+yu = summarise(sz, avg_total_runs = mean(batsman_total_runs))
+
+##TOTAL RUNS SCORED FROM BOUNDARIES
+ballfs = c(4,6)
+rt = filter(pw, batsman_runs %in% ballfs)
+yr = rt %>% group_by(match_id,batsman)
+hg = summarise(yr, runs_from_foursixs =sum(batsman_runs))
+tx = group_by(hg, batsman)
+fz = summarise(tx, avg_run_from_4_6 = mean(runs_from_foursixs))
+
+## TOTAL RUNS SCORED FROM 1'S, 2'S, 3'S
+ball123 = c(1,2,3)
+qq = filter(pw, batsman_runs %in% ball123)
+rr = qq %>% group_by(match_id,batsman)
+gg = summarise(rr, runs_from_123 =sum(batsman_runs))
+tt = group_by(gg, batsman)
+re = summarise(tt, avg_run_from_123_ = mean(runs_from_123))
+
+ku = left_join(fd,yu, by = c("batsman") )
+mu = left_join(fz,re, by = c("batsman") )
+final = left_join(ku,mu, by = c("batsman"))
+final$BIS = (final$avg_total_runs+final$avg_run_from_4_6 -((final$avg_run_from_4_6) *0.5))/final$average_ball_number
+tc = arrange(final, desc(BIS))
+##highest BIS for YK PATHAN, JC BUTTLER, KK NAIR (TOP3)
+
+##########
+#### Question 3 ####
+##########
+
+df = filter(dhj,batting_team %in% mb, bowling_team %in% mb)
+qa = df %>% group_by(match_id, batsman)
+
+#TOTAL RUNS
+fx = summarise(qa, total_run = sum(total_runs))
+lg = group_by(fx, batsman)
+gf = summarise(lg,avg_total_run = mean(total_run))
+
+##4'S 6'S RUNS
+qz = filter(dhj,batting_team %in% mb, bowling_team %in% mb, batsman_runs %in% ballfs)
+rb = qz %>% group_by(match_id, batsman)
+qs = summarise(rb, total_4_6s = sum(batsman_runs))
+ll = group_by(qs, batsman)
+gm = summarise(ll,avg_4_6s_runs = mean(total_4_6s))
+dax = left_join(gf,gm, by = c("batsman"))
+dax
+dax[is.na(dax)] = 0
+dax$ratio = (dax$avg_4_6s_runs/dax$avg_total_run)
+arrange(dax, desc(avg_total_run),desc(avg_4_6s_runs), desc(ratio))
+##TOP 3 Q de Kock, CJ Anderson, JC Buttler
+rar =arrange(dax, desc(avg_4_6s_runs), desc(avg_total_run), desc(ratio))
+##WILL SHOW THAT ENTERIES FIRST IN 4 & 6'S DESC ORDER & THEN TOTAL RUNS
+##CAN SEE THAT  JC Buttler , CJ Anderson, Q de Kock (TOP3) with highest 4's 6's & high total runs
+##this best ratio to define high no 4's & 6's to the high total_runs
+rar[rar$batsman =="SV Samson",]
+
+##or
+wz = left_join(fx, qs, by = c("batsman", "match_id"))
+wz[is.na(wz)] = 0
+wz
+wz$rate = wz$total_4_6s/wz$total_run
+wz_new =na.omit(wz)
+wt = group_by(wz_new, batsman)
+lhi = summarise(wt,avg_rate = mean(rate))
+arrange(lhi,desc(avg_rate))
+
+##########
+#### Question 4 ####
+##########
+
+##RAJASTHAN ROYALS
+ol = filter(dhj, batting_team == "Rajasthan Royals", bowling_team == "Mumbai Indians" )
+mb =unique(ol$match_id)
+ol$ball_no = NA
+
+for(i in 1:length(mb)){
+  m = 1
+  for(j in 1:nrow(ol)){
+    if(ol$match_id[j]== mb[i]){
+      ol$ball_no[j]=m
+      m = m + 1
+    }
+  }
+}
+
+
+add = c(NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA)
+tr =as.list(add)
+uy =as.list(add)
+
+for(j in 1:length(mb)){
+  
+  da2 = filter(ol, match_id == mb[j])
+  for(i in 1:nrow(da2)){
+    tr[[j]][i] = sum(da2$total_runs[1:i])
+    uy[[j]] = as.data.frame(tr[j])
+  }
+}
+
+names(uy[[1]]) = names(uy[[2]]) = names(uy[[3]])= names(uy[[4]])=names(uy[[5]]) =names(uy[[6]]) = names(uy[[7]])= names(uy[[8]])= names(uy[[9]])= names(uy[[10]]) = names(uy[[11]]) = names(uy[[12]]) = names(uy[[13]])= names(uy[[14]]) = names(uy[[15]]) =names(uy[[16]]) = names(uy[[17]])= names(uy[[18]])= names(uy[[19]])= names(uy[[20]]) ="cummuative_total_runs"
+mk = do.call(rbind.data.frame, uy[1:20])
+
+set = ol[,c(1,22)]
+fr = cbind(set,mk)
+fr[fr$match_id == 267, ]
+unique(fr$match_id)
+cumm = c(100:106)
+jh =filter(fr, cummuative_total_runs %in% cumm)
+unique(jh$match_id)
+##only in one match RR does not score 100
+
+
+ml = group_by(jh,match_id) ##arange asc order so want smmalest no ball scoring 50, no need to arrange
+po = slice(ml,1:1)
+mean(po$ball_no) #80.42105 balls to score 50
+median(po$ball_no) #77 ball
+#can see that average 39 balls takes to score 50 runs by sunrise hyderbad
+ggplot(po,aes(x=ball_no))+geom_histogram(aes(fill= factor(ball_no)),alpha = 0.5, col="black")
+##plot more pts lying over75-77 than 80 
+##so RR takes 77 balls to score 100
+
+##MUMBAI INDIANS
+op = filter(dhj, batting_team == "Mumbai Indians", bowling_team == "Rajasthan Royals" )
+mk =unique(op$match_id)
+op$ball_no = NA
+
+for(i in 1:length(mk)){
+  m = 1
+  for(j in 1:nrow(op)){
+    if(op$match_id[j]== mk[i]){
+      op$ball_no[j]=m
+      m = m + 1
+    }
+  }
+}
+
+
+add = c(NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA)
+tr =as.list(add1)
+uy =as.list(add)
+
+for(j in 1:length(mk)){
+  
+  da2 = filter(op, match_id == mk[j])
+  for(i in 1:nrow(da2)){
+    tr[[j]][i] = sum(da2$total_runs[1:i])
+    uy[[j]] = as.data.frame(tr[j])
+  }
+}
+
+names(uy[[1]]) = names(uy[[2]]) = names(uy[[3]])= names(uy[[4]])=names(uy[[5]]) =names(uy[[6]]) = names(uy[[7]])= names(uy[[8]])= names(uy[[9]])= names(uy[[10]]) = names(uy[[11]]) = names(uy[[12]]) = names(uy[[13]])= names(uy[[14]]) = names(uy[[15]]) =names(uy[[16]]) = names(uy[[17]])= names(uy[[18]])= names(uy[[19]])= names(uy[[20]]) ="cummuative_total_runs"
+mj = do.call(rbind.data.frame, uy[1:20])
+
+ser = op[,c(1,22)]
+fer = cbind(ser,mj)
+
+unique(fer$match_id)
+
+jhw =filter(fer, cummuative_total_runs %in% cumm)
+unique(jhw$match_id)
+##only in 2 matches MI does not score 100
+fer[fer$match_id ==267 ,]
+fer[fer$match_id ==403,]
+ 
+mlj = group_by(jhw,match_id) ##arrange ascending order so want smallest no ball scoring 50, no need to arrange
+pol = slice(mlj,1:1)
+mean(pol$ball_no) #79.22222 balls to score 50
+median(pol$ball_no) #75.5 ball
+l = ggplot(pol,aes(x=ball_no))+geom_histogram(fill= "red",alpha = 0.5, col="black", bins =50)
+ggplotly(l)
+##more on 76/75 than 79
+##so conclude take 76 balls to score 100
+
+qs = full_join(po,pol, by = c("match_id"))
+qs[is.na(qs)] = 0
+qs$diff = qs$ball_no.x - qs$ball_no.y # subtracting MI balls taken to score 100 from RR balls taken to score 100 
+mean(qs$diff) #5.368421
+median(qs$diff) # 3 balls
+##so can say that diff of balls b/w RR & to score 100 & MI,is of balls less than 10
+
+##########
+#### Question 5 ####
+##########
+
+#WICKETS TAKEN
+"%!in%" = Negate("%in%")
+tra =c("Mumbai Indians", "Rajasthan Royals")
+library(dplyr)
+sk = filter(dhj, batting_team %in% tra, bowling_team %in% tra, player_dismissed %!in% "")
+qx = sk %>% group_by(match_id, bowler)
+sxv = count(qx, player_dismissed)
+oh = summarise(sxv, total_player_out = sum(n))
+qs = group_by(oh,bowler)
+wq = summarise(qs, avg_player_out = mean(total_player_out))
+
+#DOT BALLS
+sf = filter(dhj, batting_team %in% tra, bowling_team %in% tra, total_runs == 0)
+qk = sf %>% group_by(match_id, bowler)
+qa = count(qk, total_runs )
+oo = summarise(qa, total_dotball = sum(n))
+qm = group_by(oo,bowler)
+wo = summarise(qm, avg_noof_dotball = mean(total_dotball))
+
+#BOUNDARY RUNS GIVEN
+fds = c(4,6)
+su = filter(dhj, batting_team %in% tra, bowling_team %in% tra, total_runs %in% fds)
+qo = su %>% group_by(match_id, bowler)
+qb = summarise(qo, total_46S = sum(total_runs))
+qv = group_by(qb,bowler)
+wp = summarise(qv, avg_noof_46s_runs = mean(total_46S))
+
+#TOTAL BALLS BOWLED 
+ub = filter(dhj, batting_team %in% tra, bowling_team %in% tra)
+un = ub %>% group_by(match_id, bowler)
+ql = count(qk,ball)
+ll = summarise(ql, total_ball = sum(n))
+fx = group_by(ll,bowler)
+ys = summarise(fx, avg_noof_ball_bowled = mean(total_ball)) 
+
+qx = left_join(ys,wp, by =c("bowler"))
+eq = left_join(wo,wq,by =c("bowler"))
+mn =full_join(qx,eq)
+mn$avg_noof_ball_bowled = round(mn$avg_noof_ball_bowled,0)
+mn$avg_noof_46s_runs = round(mn$avg_noof_46s_runs,0)
+mn$avg_noof_dotball= round(mn$avg_noof_dotball,0)
+mn$avg_player_out= round(mn$avg_player_out,0)
+mn[is.na(mn)] = 0
+mn$BLS = (mn$avg_player_out+(mn$avg_noof_dotball *2)-(mn$avg_noof_46s_runs))/(mn$avg_noof_ball_bowled - (mn$avg_noof_dotball*2.5))
+arrange(mn, desc(BLS))
+##R Sathish, A Joseph, Pankaj Singh  HAVE HIGHEST BLS
+
