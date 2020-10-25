@@ -281,7 +281,7 @@ jhg$scoreoff = jhg$runs_RCB - jhg$runs_KKR
 jhg$scoreoff_abs = abs(jhg$scoreoff)
 jhg
 mean(jhg$scoreoff_abs) ##17
-median(jhg$scoreoff_abs) ##18
+median(jhg$scoreoff_abs) ##18 score off
 
 
 
