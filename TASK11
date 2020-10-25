@@ -1,0 +1,152 @@
+library(readxl)
+dai = read_excel("matches_SHORT.xlsx",sheet = 1)
+table(dai$team1)
+
+library(dplyr)
+library(ggplot2)
+library(plotly)
+
+kwq = c("SH","RR")
+jkm = filter(dai, team1 %in% kwq, team2 %in% kwq)
+
+##########
+#### Question 1 ####
+##########
+
+lpl = ggplot(jkm, aes(x = winner)) + geom_bar(aes(fill = factor(winner)))
+ggplotly(lpl)
+##5 matches won by RR & 6 matches won by SH
+
+hjb = ggplot(dai, aes(x = winner)) + geom_bar(aes(fill = factor(winner)))
+ggplotly(hjb)
+##RR- 75 matches, SH- 58 matches
+
+hjc = ggplot(jkm, aes(y = win_by_runs, x = winner)) + geom_boxplot(aes(fill = factor(winner)))
+ggplotly(hjc)
+##win by runs is higher for SH=9 than RR=0
+
+hjl = ggplot(jkm, aes(y = win_by_wickets, x = winner)) + geom_boxplot(aes(fill = factor(winner)))
+ggplotly(hjl)
+##win by wicket is higher for RR=6, sh=0
+
+hvc = ggplot(dai, aes(y = win_by_runs, x = winner)) + geom_boxplot(aes(fill = factor(winner)))
+ggplotly(hvc)
+##win by runs is higher for SH than RR, AVG=0,4 resp
+
+hjm = ggplot(dai, aes(y = win_by_wickets, x = winner)) + geom_boxplot(aes(fill = factor(winner)))
+ggplotly(hjm)
+##win by wicket is higher for RR than SH, AVG = 4,AVG = 0
+##thus more likely that KKR won more matches than RCB in total as well against RCB
+
+##CONCLUSION -much higher win by runs for SH than RR, & also SH won one extra match against RR. Thus, more likely SH win
+
+##########
+#### Question 2 ####
+##########
+
+dhj = read.csv("deliveries(1).csv")
+tyu = filter(dhj, bowling_team == "Sunrisers Hyderabad", batting_team == "Rajasthan Royals", bowler == "Rashid Khan")
+
+tyu$ball_no = NA
+
+lkp = unique(tyu$match_id)
+for(i in 1:length(lkp)){
+  m = 1
+  for(j in 1:nrow(tyu)){
+    if(tyu$match_id[j] == lkp[i]){
+      tyu$ball_no[j]= m
+      m = m + 1
+    }
+  }
+}
+
+"%!in%" = Negate("%in%")
+mjk = filter(tyu, player_dismissed %!in% "")
+bn = group_by(mjk,match_id)
+mg = summarise(bn, balls_taken_toout = min(ball_no))
+mean(mg$balls_taken_toout) #11.75
+median(mg$balls_taken_toout) #12.5
+
+##in all matches
+
+dhj = read.csv("deliveries(1).csv")
+ty = filter(dhj, bowler == "Rashid Khan")
+
+ty$ball_no = NA
+
+lk = unique(ty$match_id)
+for(i in 1:length(lk)){
+  m = 1
+  for(j in 1:nrow(ty)){
+    if(ty$match_id[j] == lk[i]){
+      ty$ball_no[j]= m
+      m = m + 1
+    }
+  }
+}
+
+
+mj = filter(ty, player_dismissed %!in% "")
+bno = group_by(mj,match_id)
+bn
+mgh = summarise(bno, balls_taken_toout = min(ball_no))
+mean(mgh$balls_taken_toout) #12.68
+median(mgh$balls_taken_toout) #12.5
+
+##conclusion - will take avg 12 & 11
+
+##########
+#### Question 3 ####
+##########
+
+tye = filter(dhj, bowling_team == "Rajasthan Royals" , batting_team == "Sunrisers Hyderabad", player_dismissed == "DA Warner")
+
+bn = ggplot(tye, aes(x= dismissal_kind))+geom_bar(aes(fill = dismissal_kind))
+ggplotly(bn)
+##out of 6 MATCHES played against RR in 4 matches he was out by getting caught, 1 - run-out & stumped
+
+tyo = filter(dhj, player_dismissed == "DA Warner")
+length(table(tyo$match_id)) # 109 matches he played in total matches in IPL
+bnv = ggplot(tyo, aes(x= dismissal_kind))+geom_bar(aes(fill = dismissal_kind))+coord_flip()
+ggplotly(bnv)
+##OUT OF 109 - 69 TIMES GET CAUGHT, 23- BOWLED, STUMPED - 5, RUN-OUT = 6, LBW = 4, HIT-WKT =1, CAUGHT & BOWLED=2
+###CONCLUSION - SO CAN SAY MORE LIKEY IS GETTING CAUGHT
+
+##########
+#### Question 4 ####
+##########
+
+tye = filter(dhj, bowling_team == "Sunrisers Hyderabad" , batting_team == "Rajasthan Royals")
+
+bv = tye %>% group_by(match_id, batsman)          
+nkm = summarise(bv, run = sum(total_runs))
+by(nkm, nkm["run"], head, n=4)
+mny = nkm %>% group_by(match_id, batsman) %>% summarise(max(run))
+nkm = arrange(nkm, match_id, desc(run) )
+
+mko = slice(nkm,1:2) ##top 2 positions
+table(mko$match_id)
+length(table(mko$batsman)) ##played 11 matches 
+table(mko$batsman)
+#SV samson 6 times in top 2, & AM rahane 4 times in top 2
+
+mkd = slice(nkm,1)  ##first position
+table(mkd$batsman) # 3 times AM RAHANE & SV SAMSON top 1
+
+##implies out of 6 times - 3 times SV SAMSON topped & 3 times second position
+##& out of 4 times- 3 times topped & 1 second position
+
+##CONCLUSION - thus can say more likely that SAMSON to score most runs for RR in match
+
+##########
+#### Question 5 ####
+##########
+
+teamd = c("Sunrisers Hyderabad", "Rajasthan Royals")
+
+tyb = filter(dhj, bowling_team %in% teamd , batting_team %in% teamd, noball_runs %!in% 0)
+mf = group_by(tyb,match_id)
+mk = count(mf,noball_runs) #1 no_ball
+##out of 11 matches played only in 3 matches only one no ball in each match
+###CONCLUSION - ONE NO BALL
+
