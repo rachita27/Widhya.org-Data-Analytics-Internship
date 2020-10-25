@@ -1,0 +1,308 @@
+library(readxl)
+dai = read_excel("matches_SHORT.xlsx",sheet = 1)
+table(dai$team1)
+
+library(dplyr)
+library(ggplot2)
+library(plotly)
+
+dsx = c("CSK","MI")
+jkm = filter(dai, team1 %in% dsx, team2 %in% dsx)
+
+##########
+#### Question 1 ####
+##########
+
+pk = ggplot(jkm, aes(winner))+geom_bar(aes(fill = winner))
+ggplotly(pk)
+## out of 28 matches played b/w CSK & MI played CSK won 11 MATCHES & MI won 17 matches.
+
+jh = ggplot(dai, aes(winner))+geom_bar(aes(fill = winner))
+ggplotly(jh)
+##IN TOTAL CSK WON 100 MATCHES & MI WON 109 MATCHES
+
+##THUS MORE LIKELY MI WILL WIN
+
+##########
+#### Question 2 ####
+##########
+
+dhj = read.csv("deliveries.csv")
+tyk = filter(dhj, bowling_team == "Chennai Super Kings", batting_team == "Mumbai Indians", batsman == "Q de Kock")
+
+kjb = unique(tyk$match_id)
+tyk$ball_number = NA
+
+for(i in 1:length(kjb)){
+  m = 1 
+  for(j in 1:nrow(tyk)){
+    if(tyk$match_id[j] == kjb[i]){
+      tyk$ball_number[j] = m
+      m = m+1
+    }
+  }
+}
+
+balls = 1:10
+bats = c(4,6)
+act = filter(tyk, ball_number %in% balls, batsman_runs %in% bats )
+mn = group_by(act, match_id)
+kht = summarise(mn, Total_run = sum(total_runs))
+median(kht$Total_run) # 9 runs
+mean(kht$Total_run) # 8.5 runs
+
+plot(x= kht$match_id, y=kht$Total_run) # two point above 14
+
+tyo = filter(dhj, batsman == "Q de Kock")
+
+kjo = unique(tyo$match_id)
+tyo$ball_number = NA
+
+for(i in 1:length(kjo)){
+  m = 1 
+  for(j in 1:nrow(tyo)){
+    if(tyo$match_id[j] == kjo[i]){
+      tyo$ball_number[j] = m
+      m = m+1
+    }
+  }
+}
+
+balls = 1:10
+aco = filter(tyo, ball_number %in% balls, batsman_runs %in% bats )
+
+mo = group_by(aco, match_id)
+kho = summarise(mo, Total_run = sum(total_runs))
+median(kho$Total_run) # 8 runs
+mean(kho$Total_run) # 7.65 runs
+ggplot(kho, aes(x=Total_run))+geom_bar(fill = "red", col = "black", alpha = 0.5)
+##RIGHT SKEWED & maximum data below 10 total_runs (in first 10 balls by Q DE Kock)
+
+##########
+#### Question 3 ####
+##########
+
+gv = filter(dhj, bowling_team == "Mumbai Indians", batting_team == "Chennai Super Kings")
+oh = unique(gv$match_id)
+mh = unique(gv$bowler)
+
+for(i in 1:length(oh)){
+  for(n in 1:length(mh)){
+    m = 1
+  for(j in 1:nrow(gv)){
+    if(gv$match_id[j] == oh[i] & gv$bowler[j] ==  mh[n]){
+      gv$bowler_ballno[j] = m
+      m = m+1
+      }
+    }
+  }
+}
+
+
+
+bt = gv %>% group_by(match_id, bowler)
+mk = count(bt, bowler_ballno)
+nk = summarise(mk, total_ball = sum(n))
+
+##dot ball 
+bn = filter(dhj, bowling_team == "Mumbai Indians", batting_team == "Chennai Super Kings", total_runs == 0)
+
+mw = unique(bn$match_id)
+vb = unique(bn$bowler) # "RG Sharma" not bowled any dot ball 
+bn$bowler_dotball = NA
+
+for(i in 1:length(mw)){
+  for(n in 1:length(vb)){
+    b = 1
+    for(j in 1:nrow(bn)){
+      if(bn$match_id[j] == mw[i] & bn$bowler[j] ==  vb[n]){
+        bn$bowler_dotball[j] = b
+        b = b+1
+      }
+    }
+  }
+}
+
+
+bd =bn %>% group_by(match_id, bowler)
+md = count(bd, bowler_dotball)
+nd = summarise(md, total_dotball = sum(n))
+nd
+nrow(nd)
+##removing RG SHARMA
+"%!in%" = Negate("%in%")
+gv = filter(dhj, bowling_team == "Mumbai Indians", batting_team == "Chennai Super Kings")
+mh = unique(gv$bowler)
+
+for(i in 1:length(oh)){
+  for(n in 1:length(mh)){
+    m = 1
+    for(j in 1:nrow(gv)){
+      if(gv$match_id[j] == oh[i] & gv$bowler[j] ==  mh[n]){
+        gv$bowler_ballno[j] = m
+        m = m+1
+      }
+    }
+  }
+}
+
+
+
+bt = gv %>% group_by(match_id, bowler)
+mk = count(bt, bowler_ballno)
+nk = summarise(mk, total_ball = sum(n))
+##dot ball data set has less number of rows that is some bowler do not bowled any dot ball
+ 
+bv =matrix(NA, nrow = 164, ncol = 4 )
+bv = as.data.frame(bv)
+colnames(bv) = c("match_id","bowler","total_ball","total_dotball")
+for(i in 1:nrow(nk)){
+  for(j in 1:nrow(nd)){
+    if(nk$match_id[i] == nd$match_id[j] & nk$bowler[i] == nd$bowler[j]){
+      bv[j,]= cbind(nk[i,],nd[j,-c(1,2)])
+    }
+  }
+}
+bv$rate = (bv$total_dotball/bv$total_ball)*100
+bv$rate = round(bv$rate,2)
+bc = group_by(bv,match_id)
+bm = arrange(bc, match_id, desc(rate))
+mr = slice(bm,1:2) ##top 2
+mr[mr$bowler == "Harbhajan Singh" | mr$bowler == "SL Malinga",]
+table(mr$bowler) #harbajan,SL malinga top two position 9 times
+
+ms = slice(bm,1) ##top 1
+table(ms$bowler) #harbajan,SL malinga top one position 3 times
+ms[ms$bowler == "Harbhajan Singh" | ms$bowler == "SL Malinga",]
+mean(ms[ms$bowler == "SL Malinga",]$rate) #54.3667
+mean(ms[ms$bowler == "Harbhajan Singh",]$rate) #47.2933
+##average rate of malinga is higher than harbajan thus more likely higher rate of malinga
+
+mean(bv[bv$bowler == "Harbhajan Singh",]$rate) #36.63
+mean(bv[bv$bowler == "SL Malinga",]$rate) #38.93286
+
+tb = group_by(bv,bowler)
+hg= summarise(tb, avg = mean(rate))
+nrow(hg)
+mx = arrange(hg, desc(avg)) ##RANK IN DESC ORDER ON THE BASIS OF AVERAGE RATE
+#BUMRAH - RANK 14, RD CHAHAR -8, 
+head(mx,20)
+tail(mx,20)
+slice(mx,1:10)
+mx[mx$bowler == "SL Malinga",] #39 rank
+mx[mx$bowler == "Harbhajan Singh",] #beyond 20 
+##highest dot ball average rate of M de Lange
+
+##USING JOINS
+mks = left_join(nd,nk, by=c("match_id", "bowler"))
+mks[is.na(mks)] = 0
+mks$rate = (mks$total_dotball/mks$total_ball)*100
+ra = group_by(mks, bowler)
+qw = summarise(ra, avg_rate =mean(rate))
+arrange(qw, desc(avg_rate)) ##M DE LANGE HIGHEST AVG RATE
+
+
+##########
+#### Question 4 ####
+##########
+mk = read.csv("deliveries.csv")
+tra = c("Chennai Super Kings","Mumbai Indians" )
+library(dplyr)
+
+##FOURS
+tyg = filter(mk, bowling_team %in% tra, batting_team %in% tra, batsman_runs == 4)
+mj = tyg %>% group_by(match_id, over)
+m = count(mj,over)
+nb = count(m,over)
+mk = group_by(nb,match_id)
+mc = summarise(mk, overs_four = sum(n))
+
+##SIXS
+
+tyo = filter(mk, bowling_team %in% tra, batting_team %in% tra, batsman_runs == 6)
+mjo = tyo %>% group_by(match_id, over)
+mo = count(mjo,over)
+nbo = count(mo,over)
+mko = group_by(nb,match_id)
+mco = summarise(mko, overs_six = sum(n))
+
+frame = cbind(mc,mco[-1])
+frame$overs_sixs_and_fours = apply(frame, 1, min)
+mean(frame$overs_sixs_and_fours) #8.178571
+median(frame$overs_sixs_and_fours) #8.5
+##in a match 8 to 8.5 overs in which both sixes and fours
+
+##########
+#### Question 5 ####
+##########
+library(dplyr)
+bts = filter(mk, bowling_team %in% tra, batting_team %in% tra, total_runs == 0)
+
+##DOT BALLS
+mv = unique(bts$match_id)
+vv = unique(bts$bowler)  
+bts$bowler_dotball = NA
+
+for(i in 1:length(mv)){
+  for(n in 1:length(vv)){
+    b = 1
+    for(j in 1:nrow(bts)){
+      if(bts$match_id[j] == mv[i] & bts$bowler[j] ==  vv[n]){
+        bts$bowler_dotball[j] = b
+        b = b+1
+      }
+    }
+  }
+}
+bq =bts %>% group_by(match_id, bowler)
+qw = count(bq, bowler_dotball)
+xc = summarise(qw, total_dotball = sum(n))
+xc
+lk = group_by(xc, bowler)
+mg = summarise(lk, mean_dot = mean(total_dotball)) ##76
+
+##PLAYER BOWLED OUT
+'%!in%' = Negate('%in%')
+bth = filter(mk, bowling_team %in% tra, batting_team %in% tra, player_dismissed %!in% "" )
+mi = unique(bth$match_id)
+vj = unique(bts$bowler)
+
+fd = bth %>% group_by(match_id,bowler)
+zx = count(fd,player_dismissed)
+lp = summarise(zx, players_bowled_out = sum(n))
+hj = group_by(lp,bowler)
+kl = summarise(hj,mean_bowled_out = mean(player_out)) ##64
+
+##TOTAL NUMBER OF BALLS
+jvb = filter(mk, bowling_team %in% tra, batting_team %in% tra)
+
+hgj = jvb %>% group_by(match_id,bowler)
+ds = count(hgj, ball)
+tx = summarise(ds, total_ball = sum(n))
+bt = group_by(tx,bowler)
+kp = summarise(bt,mean_total_ball = mean(total_ball)) #79
+
+
+#BOUNDRY GIVEN 
+bj = c(4,6)
+mjb = filter(mk, bowling_team %in% tra, batting_team %in% tra, batsman_runs %in% bj)
+
+tcx = mjb %>% group_by(match_id, bowler)
+kl = count(tcx, batsman_runs )
+
+mdf= summarise(kl, no_ifsixsfours = sum(n))
+
+wq = group_by(mdf,bowler)
+cv = summarise(wq,mean_sixesfours= mean(no_ifsixsfours)) ##76
+install.packages("sqldf")
+library(sqldf)
+merge(cv,mg, by = c("bowler"))
+ty = left_join(kp,cv)
+my = left_join(mg,kl)
+final = left_join(ty,my)
+final[is.na(final)] = 0
+final$BLS = ((final$mean_bowled_out+final$mean_dot-final$mean_sixesfours)/final$mean_total_ball)
+final$BLS = round(final$BLS,2)
+UY = arrange(final, desc(BLS))
+head(UY,20)
+##M Santner, J Behrendorff  HIGHEST BLS  
