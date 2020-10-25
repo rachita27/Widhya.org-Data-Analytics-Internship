@@ -1,0 +1,101 @@
+library(readxl)
+dai = read_excel("matches_SHORT.xlsx",sheet = 1)
+table(dai$team1)
+
+library(dplyr)
+library(ggplot2)
+library(plotly)
+
+kj = c("CSK","RR")
+jk = filter(dai, team1 %in% kj, team2 %in% kj)
+
+     ##########
+#### Question 1 ####
+     ##########
+lp = ggplot(jk, aes(x = winner)) + geom_bar(aes(fill = factor(winner)))
+ggplotly(lp)
+##14 matches won by CSK & 7 matches won by RR
+
+hj = ggplot(dai, aes(x = winner)) + geom_bar(aes(fill = factor(winner)))
+ggplotly(hj)
+##RR- 75 matches, CSK- 100 matches
+
+##SO CAN CONCLUDE MORE LIKELY CSK TO WIN
+
+     ##########
+#### Question 2 ####
+     ##########
+
+library(readxl)
+dhj = read.csv("deliveries(1).csv")
+overs = 1:6
+gh = filter(dhj,batting_team == "Rajasthan Royals", bowling_team == "Chennai Super Kings", over %in% overs )
+gj = group_by(gh,match_id)
+sd = summarise(gj,Total_Runs =sum(total_runs))
+mean(sd$Total_Runs) #45.57 runs in first 6 overs
+median(sd$Total_Runs) #44 runs in first 6 overs
+
+     ##########
+#### Question 3 ####
+     ##########
+
+fg = filter(dhj,bowler == "DL Chahar")
+head(fg)
+gf = group_by(fg, match_id)
+fj = count(gf, over)
+fd = count(fj,over)
+##shows overs corresponding to each match_id played by DL CHAHAR.
+jh = summarise(fd,Number_ofover = sum(n))
+
+ft = group_by(fg, match_id)
+table(ft$batsman)
+uo = summarise(ft,total_runs= sum(total_runs) )
+data_frame = cbind.data.frame(jh,uo[-1])
+data_frame$economy_rate = data_frame$total_runs/ data_frame$Number_ofover
+data_frame$economy_rate = round(data_frame$economy_rate,2)
+mean(data_frame$economy_rate) ##approx 8.34
+median(data_frame$economy_rate) ## approx  8.12, mode = 6.64 (right skewed)
+t = ggplot(data_frame,aes(x = economy_rate))+geom_histogram(fill = "red", bins = 40, col = "black", alpha = 0.5)
+ggplotly(t)
+# 4 b/w 7.31 - 8.2, 17 points 8.21 or above, so more likely greater than 8.21
+
+summary(data_frame)
+##showing right skewed then in that case best measure is median ~ 8.12
+
+     ##########
+#### Question 4 ####
+     ##########
+
+overs = 15:20
+balls = 1:6
+dhj1 = filter(dhj, batting_team == "Chennai Super Kings", bowling_team == "Rajasthan Royals", over %in% overs, ball %in% balls)
+"%!in%" = Negate('%in%')
+gfs = c("")
+vb = filter(dhj1, bowler == "J Archer", player_dismissed %!in% gfs) #only 1 player dismissed
+#1 player dismissed
+
+dhju = filter(dhj, over %in% overs, ball %in% balls, bowler == "J Archer", player_dismissed %!in% gfs)
+gt = group_by(dhju, match_id)
+fg = count(gt,player_dismissed)
+tyi = group_by(fg, match_id)
+gty = summarise(tyi, no_of_player_bowled = sum(n))
+mean(gty$no_of_player_bowled) #1.667
+median(gty$no_of_player_bowled) #1
+ggplot(gty, aes(x= no_of_player_bowled))+geom_bar()
+## highest no. of bowled out by J archer is last 5 overs is 1.
+
+    ##########
+#### Question 5 ####
+     ##########
+gt = filter(dhj, batsman == "SPD Smith")
+kj = group_by(gt, match_id)
+mj = count(kj,ball)
+balls = summarise(mj, number_of_balls = sum(n))
+
+runs = summarise(kj, total_runs = sum(total_runs))
+frames = cbind.data.frame(runs,balls[-1])
+frames$strike_rate = (frames$total_runs/frames$number_of_balls) * 100
+frames$strike_rate = round(frames$strike_rate,2)
+mean(frames$strike_rate) #130.2278
+median(frames$strike_rate) #125
+## AVERAGE STRIKE RATE IS AROUND 125-130
