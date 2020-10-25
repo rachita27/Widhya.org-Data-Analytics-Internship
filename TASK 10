@@ -1,0 +1,289 @@
+library(readxl)
+dai = read_excel("matches_SHORT.xlsx",sheet = 1)
+table(dai$team1)
+
+library(dplyr)
+library(ggplot2)
+library(plotly)
+
+kjl = c("KKR","RCB")
+jkq = filter(dai, team1 %in% kjl, team2 %in% kjl)
+
+##########
+#### Question 1 ####
+##########
+
+lpo = ggplot(jkq, aes(x = winner)) + geom_bar(aes(fill = factor(winner)))
+ggplotly(lpo)
+##14 matches won by KKR & 10 matches won by RCB
+
+hjp = ggplot(dai, aes(x = winner)) + geom_bar(aes(fill = factor(winner)))
+ggplotly(hjp)
+##RCB- 84 matches, KKR- 92 matches
+
+##thus more likely that KKR won more matches than RCB in total as well against RCB
+
+##########
+#### Question 2 ####
+##########
+
+dhj = read.csv("deliveries(1).csv")
+overs = 6:20
+balls = 1:6 
+ty = c("")
+"%!in%" = Negate('%in%')
+gh = filter(dhj,batting_team == "Royal Challengers Bangalore", bowling_team == "Kolkata Knight Riders", over %in% overs, ball %in% balls, player_dismissed %!in% ty)
+
+dt = group_by(gh,match_id)
+uy = count(dt,player_dismissed)
+uy
+tr = summarise(uy,numberof_playerdismissed = sum(n))
+mean(tr$numberof_playerdismissed) #4 wickets in last 15 overs
+median(tr$numberof_playerdismissed) #4.5 wickets in last 15 overs RCB will lose
+
+ko = ggplot(tr, aes(x=numberof_playerdismissed))+geom_histogram(fill = "red", bins = 50)
+ggplotly(ko)
+##left skewed distribution also median best measure in that case & also more accumulation over 5 wickets & median also 5. So, conclude 5 wickets
+
+##########
+#### Question 3 ####
+##########
+
+ghg = filter(dhj,batting_team == "Royal Challengers Bangalore", bowling_team == "Kolkata Knight Riders")
+
+ghg$ball_number = NA
+nam = unique(ghg$match_id)
+
+    
+for(j in 1:length(nam)){
+  m=1
+  for(i in 1:nrow(ghg)){
+    if(ghg$match_id[i] == nam[j]) {
+      ghg$ball_number[i] = m
+      m = m + 1
+    }
+  }
+}
+
+
+table(ghg$ball_number)
+we = c("match_id","ball_number","player_dismissed","batsman","total_runs")
+jko = ghg[we]
+
+length(unique(jko$match_id))
+
+gt =list(c(1,2,3),'a',1:5)
+
+add = c(NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA)
+tr =as.list(add)
+uy =as.list(add)
+
+for(j in 1:length(nam)){
+  
+  da2 = filter(jko, match_id == nam[j])
+   for(i in 1:nrow(da2)){
+     tr[[j]][i] = sum(da2$total_runs[1:i])
+     uy[[j]] = as.data.frame(tr[j])
+   }
+}
+
+names(uy[[1]]) = names(uy[[2]]) = names(uy[[3]])= names(uy[[4]])=names(uy[[5]]) =names(uy[[6]]) = names(uy[[7]])= names(uy[[8]])= names(uy[[9]])= names(uy[[10]]) = names(uy[[11]]) = names(uy[[12]]) = names(uy[[13]])= names(uy[[14]])=names(uy[[15]]) =names(uy[[16]]) = names(uy[[17]])= names(uy[[18]])= names(uy[[19]])= names(uy[[20]]) = names(uy[[21]]) = names(uy[[22]]) = names(uy[[23]])= names(uy[[24]])="cummuative_total_runs"
+mk = do.call(rbind.data.frame, uy[1:24])
+
+re = cbind.data.frame(jko,mk)
+uo = filter(re, batsman == "AB de Villiers")
+tail(uo)
+length(unique(uo$match_id)) ## 15 matches he played
+
+uoo = filter(uo , cummuative_total_runs <= 50 & cummuative_total_runs >= 30 )
+
+##AB DEVILERS RUNS
+uog = filter(ghg, batsman == "AB de Villiers")
+table(uog$batsman)
+uog$ball_number_of_AB = NA
+namm = unique(uog$match_id)
+
+
+for(j in 1:length(namm)){
+  m=1
+  for(i in 1:nrow(uog)){
+    if(uog$match_id[i] == namm[j]) {
+      uog$ball_number_of_AB[i] = m
+      m = m + 1
+    }
+  }
+}
+
+ad = c(NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA)
+trr =as.list(ad)
+uyk =as.list(ad)
+
+for(j in 1:length(namm)){
+  
+  da2 = filter(uog, match_id == namm[j])
+  for(i in 1:nrow(da2)){
+    trr[[j]][i] = sum(da2$total_runs[1:i])
+    uyk[[j]] = as.data.frame(trr[j])
+  }
+}
+trr[[1]]
+names(uyk[[1]]) = names(uyk[[2]]) = names(uyk[[3]])= names(uyk[[4]])=names(uyk[[5]]) =names(uyk[[6]]) = names(uyk[[7]])= names(uyk[[8]])= names(uyk[[9]])= names(uyk[[10]]) = names(uyk[[11]]) = names(uyk[[12]]) = names(uyk[[13]])= names(uyk[[14]])=names(uyk[[15]]) ="cumm_runs_of_AB"
+mko = do.call(rbind.data.frame, uyk[1:24])
+ud = c("match_id","ball_number_of_AB" ) 
+ree = cbind.data.frame(uog[ud],mko)
+table(ree$cumm_runs_of_AB)
+length(table(ree$match_id)) ##15 matches he played
+
+mn = filter(ree, cumm_runs_of_AB >= 30 & cumm_runs_of_AB<=35)
+##shows out of 15 matches only in 3 matches cross 30 runs
+
+kl = group_by(mn, match_id)
+jh = kl[c(2,3)]
+mn %>%group_by(match_id) %>% summarise(min(cumm_runs_of_AB))
+##in 3 matches to cross 30 he took 23,12 & 22 balls
+(sum(23+12+22))/3 # 19balls takes
+
+##########
+#### Question 4 ####
+##########
+
+gt = filter(dhj, batsman == "EJG Morgan", bowling_team == "Royal Challengers Bangalore")
+table(gt$match_id)
+kj = group_by(gt, match_id)
+mj = count(kj,ball)
+balls = summarise(mj, number_of_balls = sum(n))
+
+runs = summarise(kj, total_runs = sum(total_runs))
+frames = cbind.data.frame(runs,balls[-1])
+frames$strike_rate = (frames$total_runs/frames$number_of_balls) * 100
+frames$strike_rate = round(frames$strike_rate,2)
+
+##last 7 balls
+table(gt$match_id)
+mnv = gt
+table(mnv$match_id)
+
+mnv$ball_number_of_EJG = NA
+nty = unique(mnv$match_id)
+
+
+for(j in 1:length(nty)){
+  m=1
+  for(i in 1:nrow(mnv)){
+    if(mnv$match_id[i] == nty[j]) {
+      mnv$ball_number_of_EJG[i] = m
+      m = m + 1
+    }
+  }
+}
+
+
+av = c(as.data.frame(NA),as.data.frame(NA),as.data.frame(NA),as.data.frame(NA))
+uyk =as.list(av)
+nty = unique(mnv$match_id)
+for(j in 1:length(nty)){
+  da1 = filter(mnv, match_id == nty[j])
+  if(nrow(da1)<= 7){
+    uyk[[j]]= da1[1:nrow(da1),]
+  }else {
+    m = (nrow(da1)-7)
+    uyk[[j]] = da1[-c(1:m),]
+  }
+}
+nb = rbind(uyk[[1]],uyk[[2]],uyk[[3]],uyk[[4]],uyk[[5]])
+
+table(mnv$match_id)
+
+length(table(nb$match_id))
+kjk = group_by(nb, match_id)
+mjk = count(kjk,ball)
+bas = summarise(mjk, number_of_balls = sum(n))
+
+rum = summarise(kjk, total_runs = sum(total_runs))
+fram = cbind.data.frame(rum,bas[-1])
+fram$strike_rate_last7 = (fram$total_runs/fram$number_of_balls) * 100
+fram$strike_rate_last7 = round(fram$strike_rate,2)
+
+xc = cbind(fram[c(1,4)],frames[4]) ## 27.78
+
+uyk[1:2]
+
+###IN ALL MATCHES HE PLAYED
+gc = filter(dhj, batsman == "EJG Morgan")
+table(gc$match_id)
+kjb = group_by(gc, match_id)
+mjm = count(kjb,ball)
+bs = summarise(mjm, number_of_balls = sum(n))
+
+rs = summarise(kjb, total_runs = sum(total_runs))
+frl = cbind.data.frame(rs,bs[-1])
+frl$strike_rate = (frl$total_runs/frl$number_of_balls) * 100
+frl$strike_rate = round(frl$strike_rate,2)
+
+##last 7 balls
+table(gc$match_id)
+mnm = gc
+table(mnm$match_id)
+
+avk = c(rep(as.data.frame(NA),45))
+uyb =as.list(av)
+ntb = unique(mnm$match_id)
+
+for(j in 1:length(ntb)){
+  da1 = filter(mnm, match_id == ntb[j])
+  if(nrow(da1)<= 7){
+    uyb[[j]]= da1[1:nrow(da1),]
+  }else {
+    m = (nrow(da1)-7)
+    uyb[[j]] = da1[-c(1:m),]
+  }
+}
+nbv = rbind(uyb[[1]],uyb[[2]],uyb[[3]],uyb[[4]],uyb[[5]],uyb[[6]],uyb[[7]],uyb[[8]],uyb[[9]],uyb[[10]],uyb[[11]],uyb[[12]],uyb[[13]],uyb[[14]],uyb[[15]],uyb[[16]],uyb[[17]],uyb[[18]],uyb[[19]],uyb[[20]],uyb[[21]],uyb[[22]],uyb[[23]],uyb[[24]],uyb[[25]],uyb[[26]],uyb[[27]],uyb[[28]],uyb[[29]],uyb[[30]],uyb[[31]],uyb[[32]],uyb[[33]],uyb[[34]],uyb[[35]],uyb[[36]],uyb[[37]],uyb[[38]],uyb[[39]],uyb[[40]],uyb[[41]],uyb[[42]],uyb[[43]],uyb[[44]],uyb[[45]])
+
+table(nbv$match_id)
+
+length(table(nb$match_id))
+kjf = group_by(nbv, match_id)
+mjt = count(kjf,ball)
+baf = summarise(mjt, number_of_balls = sum(n))
+
+ruy = summarise(kjf, total_runs = sum(total_runs))
+far = cbind.data.frame(ruy,baf[-1])
+far$strike_rate_last7 = (far$total_runs/far$number_of_balls) * 100
+far$strike_rate_last7 = round(far$strike_rate,2)
+
+xv = cbind(frl[c(1,4)],far[4]) ## 27.78
+xv$diff = xv$strike_rate - xv$strike_rate_last7
+xv$diff = abs(xv$diff)
+mean(xv$diff) # 25.51622
+median(xv$diff) #14.29
+## So, the strike diff mean is less than 75
+##########
+#### Question 5 ####
+##########
+
+overs = 15:20
+balls = 1:6
+gtr = filter(dhj, batting_team =="Royal Challengers Bangalore", bowling_team == "Kolkata Knight Riders", ball %in% balls, over %in% overs )
+qa = group_by(gtr, match_id)
+vb = summarise(qa, runs_RCB = sum(total_runs))
+## in match_id 27 RCB got out before death over
+cv = c(27,0)
+vbb = rbind(vb,cv)
+fg = arrange(vbb,match_id)
+
+gtt = filter(dhj, batting_team == "Kolkata Knight Riders", bowling_team == "Royal Challengers Bangalore", ball %in% balls, over %in% overs )
+qsa = group_by(gtt, match_id)
+vqb = summarise(qsa, runs_KKR = sum(total_runs))
+ 
+jhg = cbind(fg,vqb[-1])
+jhg$scoreoff = jhg$runs_RCB - jhg$runs_KKR
+jhg$scoreoff_abs = abs(jhg$scoreoff)
+jhg
+mean(jhg$scoreoff_abs) ##17
+median(jhg$scoreoff_abs) ##18
+
+
+
+
+
