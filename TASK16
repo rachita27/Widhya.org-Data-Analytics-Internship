@@ -1,0 +1,151 @@
+library(readxl)
+dai = read_excel("matches_SHORT.xlsx",sheet = 1)
+table(dai$team1)
+
+library(dplyr)
+library(ggplot2)
+library(plotly)
+
+ds = c("DC","SH")
+dd = c("DD","SH")
+all=c("DC","SH","DD")
+jki = filter(dai, team1 %in% ds, team2 %in% ds)
+jk = filter(dai, team1 %in% all, team2 %in% all)
+jh = filter(dai, team1 %in% dd, team2 %in% dd)
+
+##########
+#### Question 1 ####
+##########
+
+tqa= ggplot(jk, aes(winner))+geom_bar(aes(fill = winner))
+ggplotly(tqa)
+##OUT OF 15 MATCHES PLAYED SH WON 9 MATCHES, WHEREAS DC&DD WON 6 MATCHES
+
+tq= ggplot(jki, aes(winner))+geom_bar(aes(fill = winner))
+ggplotly(tq)
+##BUT OUT OF 3 MATCHES SH & DC PLAYED DC WON 2 MATCHES
+
+th= ggplot(jh, aes(winner))+geom_bar(aes(fill = winner))
+ggplotly(th)
+#12 matches played DD & SH OUT OF WHICH 8 MATCHES WON BY SH
+
+tq= ggplot(dai, aes(winner))+geom_bar(aes(fill = winner))
+ggplotly(tq)
+##DC 10 matches won, SH 58 matches, DD won 67 matches
+
+dhj = read.csv("deliveries.csv")
+ms = c("Kolkata Knight Riders", "Kings XI Punjab")
+sa = filter(dhj, batting_team == "Sunrisers Hyderabad")
+length(unique(sa$match_id))#SH PLAYED 108 MATCHES OUT OF WHICH HE WON 58 MATCHES (0.537)
+ 
+DC = filter(dhj, batting_team == "Delhi Capitals")
+length(unique(DC$match_id))#DC PLAYED 16 MATCHES OUT OF WHICH HE WON 10 MATCHES(0.625)
+
+DD = filter(dhj, batting_team == "Delhi Daredevils")
+length(unique(DD$match_id)) #DD PLAYED 161 MATCHES OUT OF WHICH WON 67 MATCHES
+
+##DC PLAYED LESS NUMBER OF MATCHES IN TOTAL BUT STILL THEY WON MORE MATCHES IN PROPORTION TO TOTAL MATCHES THEY PLAYED THAN THE SH
+##ALSO SH & DC PLAYED 3 MATCHES OUT OF WHICH DC WON 2 MATCHES 
+##ALSO DD & DC WON IN TOTAL MORE MATCHES THAN SH
+
+##########
+#### Question 2 ####
+##########
+
+#AS DC PLAYED ONLY 3 MATCHES SO TO GET ACCURATE RESULT COMBINE IT WITH DELHI DAREDEVILS
+dhj = read.csv("deliveries.csv")
+bnm = c("Sunrisers Hyderabad", "Delhi Daredevils","Delhi Capitals")
+ghj = filter(dhj, batting_team %in% bnm, bowling_team %in% bnm )
+unique(ghj$batting_team)
+klo = group_by(ghj,match_id)
+scx = summarise(klo, toatl_runs_inmatch= sum(total_runs))
+mean(scx$toatl_runs_inmatch) #304.5333 runs
+median(scx$toatl_runs_inmatch) #320 runs
+
+dfg = ggplot(scx, aes(x= toatl_runs_inmatch))+geom_histogram(alpha = 0.5, fill = "green", col = "black")
+ggplotly(dfg)
+##left skewed distribution, in case skewed distribution best to use median
+##also major clustered at 320 & less than 320 in comparison to any other range
+##so expected run in the match is 320 or less than 320 runs
+
+##########
+#### Question 3 ####
+##########
+kind = c("caught", "caught and bowled")
+ghj = filter(dhj, batting_team %in% bnm, bowling_team %in% bnm, dismissal_kind %in% kind )
+qdf = group_by(ghj,match_id)
+tyu = count(qdf,dismissal_kind )
+uyi = summarise(tyu,total_caught = sum(n))
+mean(uyi$total_caught) #6.933~7 wkts
+median(uyi$total_caught) #6 wkts
+
+wdq= ggplot(uyi,aes(x=total_caught))+geom_histogram(bins = 25)
+ggplotly(wdq)
+##major b/w 4-7 range, left skewed in that case median is used.
+
+##########
+#### Question 4 ####
+##########
+dw = c("Delhi Daredevils","Delhi Capitals")
+overq = 1:6
+ghw = filter(dhj, batting_team == "Sunrisers Hyderabad" , bowling_team %in% dw, over %in% overq)
+qxc = group_by(ghw,match_id)
+opk = summarise(qxc, SRH_totalruns = sum(total_runs)) ##SRH total runs
+
+ghh = filter(dhj, batting_team %in% dw , bowling_team == "Sunrisers Hyderabad", over %in% overq )
+qtc = group_by(ghh,match_id)
+otk = summarise(qtc, DD_AND_DC_totalruns = sum(total_runs)) ##DD & DC total runs
+
+yko = inner_join(opk,otk, by = c("match_id"))
+yko$diff_SRH_MINUS_DD_AND_DC = yko$SRH_totalruns-yko$DD_AND_DC_totalruns
+mean(yko$diff_SRH_MINUS_DD_AND_DC) #4.13 diff b/w SRH & DC_DD RUNS
+median(yko$diff_SRH_MINUS_DD_AND_DC) #4
+klu = ggplot(yko, aes(x=diff_SRH_MINUS_DD_AND_DC))+geom_histogram(alpha =0.5, fill = "yellow", col = "black")
+ggplotly(klu)
+##majorly clustering b/w 6-14, 4 or more runs score by SRH than DC
+
+##########
+#### Question 5 ####
+##########
+
+"%!in%"= Negate("%in%")
+##WIDE COUNT
+ghc = filter(dhj, batting_team %in% bnm, bowling_team %in% bnm, wide_runs %!in% 0 )
+wqr = group_by(ghc, match_id)
+opu = count(wqr, wide_runs)
+opl = summarise(opu, total_wideball = sum(n))
+
+#BYE COUNT
+uio = filter(dhj, batting_team %in% bnm, bowling_team %in% bnm, bye_runs %!in% 0 )
+opd = group_by(uio, match_id)
+uyt = count(opd, bye_runs)
+lkh = summarise(uyt, total_byeball = sum(n))
+
+#LEG BYE COUNT
+dsa = filter(dhj, batting_team %in% bnm, bowling_team %in% bnm, legbye_runs %!in% 0 )
+pol = group_by(dsa, match_id)
+xcv = count(pol, legbye_runs)
+kgh = summarise(xcv, total_legbye_ball = sum(n))
+
+#NO BALL COUNT
+kgt = filter(dhj, batting_team %in% bnm, bowling_team %in% bnm, noball_runs %!in% 0 )
+bgt = group_by(kgt, match_id)
+tgt = count(bgt, noball_runs)
+ycd = summarise(tgt, total_noball = sum(n))
+
+#PENALITIES COUNT
+ujk = filter(dhj, batting_team %in% bnm, bowling_team %in% bnm, penalty_runs %!in% 0 )
+ugv = group_by(ujk, match_id)
+wdb = count(ugv, penalty_runs)
+plg = summarise(wdb, total_penalities_ball = sum(n)) ##no penalty balls
+
+opm = full_join(opl,lkh, by = "match_id" )
+kgx = full_join(kgh,ycd, by = "match_id" )
+dat = inner_join(opm,kgx, by = "match_id" )
+dat[is.na(dat)] =0
+dat$total = apply(dat[2:5],1, sum)
+mean(dat$total) #10.06
+median(dat$total) #10
+hft = ggplot(dat, aes(x=total))+geom_bar(alpha = 0.5, fill = "red", col = "black")
+ggplotly(hft)
+##more clustering in the range 9-12 comparison to other range option given, also mean & median same 10 lies in range of 9-12.
