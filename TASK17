@@ -1,0 +1,194 @@
+library(readxl)
+dai = read_excel("matches_SHORT.xlsx",sheet = 1)
+table(dai$team1)
+
+library(dplyr)
+library(ggplot2)
+library(plotly)
+
+mr = c("MI","RCB")
+jhq = filter(dai, team1 %in% mr, team2 %in% mr)
+
+##########
+#### Question 1 ####
+##########
+
+tqa= ggplot(jhq, aes(winner))+geom_bar(aes(fill = winner))
+ggplotly(tqa)
+##OUT OF 25 MATCHES PLAYED MI WON 16 MATCHES, WHEREAS RCB WON 9 MATCHES
+
+tqw= ggplot(dai, aes(winner))+geom_bar(aes(fill = winner))
+ggplotly(tqw)
+##MI WON 109/187 MATCHES, RCB WON 84/180 MATCHES
+table(dai$team1)
+hj = read.csv("deliveries.csv")
+sa = filter(hj, batting_team == "Royal Challengers Bangalore")
+length(unique(sa$match_id)) ##180 matches played
+ka = filter(hj, batting_team == "Mumbai Indians")
+length(unique(ka$match_id)) ##187 matches played
+##MI WON 109/187 MATCHES, RCB WON 84/180 MATCHES
+
+##SO MI MORE LIKELY TO WIN
+
+##########
+#### Question 2 ####
+##########
+
+hj = read.csv("deliveries.csv")
+qrt = c("Mumbai Indians", "Royal Challengers Bangalore")
+"%!in%"=Negate("%in%")
+
+##RCB BOWLERS- OVERS COUNT
+###dismissed players number
+qsq = filter(hj, batting_team == "Mumbai Indians" , bowling_team == "Royal Challengers Bangalore", player_dismissed %!in% "")
+hgt = qsq %>% group_by(match_id, bowler)
+ftd = count(hgt,player_dismissed)
+gfs = summarise(ftd,total_dismissed_player = sum(n))
+RCB = filter(gfs, total_dismissed_player >= 2)
+
+##MI BOWLERS- OVERS COUNT
+###dismissed players number
+qes = filter(hj, batting_team == "Royal Challengers Bangalore" , bowling_team == "Mumbai Indians", player_dismissed %!in% "" )
+qui = qes %>% group_by(match_id,bowler)
+rtq = count(qui, player_dismissed)
+qaw =  summarise(rtq,total_dismissed_player = sum(n))
+MI = filter(qaw,total_dismissed_player >= 2 )
+
+sdf = rbind(RCB, MI)
+opu = arrange(sdf, match_id)
+scv = group_by(opu,match_id)
+rtu = count(scv, bowler)
+ew = summarise(rtu, player_got2or_more_wkts = sum(n))
+mean(ew$player_got2or_more_wkts) #3.08
+median(ew$player_got2or_more_wkts) #3
+ggplot(ew, aes(x=player_got2or_more_wkts))+geom_bar()
+##majorly point cluStered at 3 wkts
+
+##########
+#### Question 3 ####
+##########
+
+hj = read.csv("deliveries.csv")
+"%!in%"=Negate("%in%")
+
+##RCB BOWLERS-
+###total runs given by bowler
+qsp = filter(hj, batting_team == "Mumbai Indians" , bowling_team == "Royal Challengers Bangalore")
+qfo = qsp %>% group_by(match_id,bowler)
+qtx = summarise (qfo, totalruns_given = sum(total_runs))
+### total overs bowled
+jxc = count(qfo,over)
+vbi = summarise(jxc, total_balls = sum(n))
+vbi$over = round((vbi$total_balls/6),0) + ((vbi$total_balls)%%6)*0.1
+kpx = full_join(vbi,qtx, by = c("match_id","bowler"))
+kpx$ecm_rate = kpx$totalruns_given/kpx$over
+
+##MI BOWLERS-
+###total runs given by bowler
+asp = filter(hj, batting_team == "Royal Challengers Bangalore", bowling_team == "Mumbai Indians" )
+afo = asp %>% group_by(match_id,bowler)
+atx = summarise (afo, totalruns_given = sum(total_runs))
+### total overs bowled
+axc = count(afo,over)
+bbi = summarise(axc, total_balls = sum(n))
+bbi$over = round((bbi$total_balls/6),0) + ((bbi$total_balls)%%6)*0.1
+gsr = full_join(bbi,atx, by = c("match_id","bowler"))
+gsr$ecm_rate = gsr$totalruns_given/gsr$over
+
+daty = rbind(gsr,kpx)
+mm = filter(daty, over>1, ecm_rate<8 )
+lyu = group_by(mm,match_id)
+jft =count(lyu,bowler)
+pfd =summarise(jft, no_of_player_erm_less_than_eight = sum(n))
+mean(pfd$no_of_player_erm_less_than_eight) #5.36
+median(pfd$no_of_player_erm_less_than_eight) #6
+ggplot(pfd, aes(x=no_of_player_erm_less_than_eight))+geom_bar()
+##shows major clustering in b/w 5-7 economy rate
+
+##########
+#### Question 4 ####
+##########
+
+##MI BATSMAN-
+###total runs given by batsman
+dsp = filter(hj, batting_team == "Mumbai Indians" , bowling_team == "Royal Challengers Bangalore")
+dfa = dsp %>% group_by(match_id,batsman)
+abx = summarise (dfa, totalruns= sum(total_runs))
+
+### total balls faced
+stq = count(dfa,over)
+rya = summarise(stq, total_balls = sum(n))
+
+### count 4s & 6s
+four_six = c(4,6)
+dst = filter(hj, batting_team == "Mumbai Indians" , bowling_team == "Royal Challengers Bangalore", batsman_runs %in% four_six)
+dva = dst %>% group_by(match_id,batsman)
+ogf = count(dva,batsman_runs)
+psc = summarise(ogf, total_4s_6s = sum(n))
+
+oap = full_join(abx,rya, by = c("match_id","batsman"))
+ldf = full_join(psc,oap, by = c("match_id","batsman"))
+ldf[is.na(ldf)]=0
+ldf$strike_rate = (ldf$totalruns/ldf$total_balls )*100
+
+##RCB BATSMAN-
+### total runs given by bowler
+vbj = filter(hj, batting_team == "Royal Challengers Bangalore", bowling_team == "Mumbai Indians" )
+pla = vbj %>% group_by(match_id,batsman)
+plx = summarise(pla, totalruns = sum(total_runs))
+
+### total balls faced
+klg = count(pla,over)
+zxc = summarise(klg, total_balls = sum(n))
+
+### count 4s & 6s
+four_six = c(4,6)
+dsa = filter(hj, batting_team == "Royal Challengers Bangalore", bowling_team == "Mumbai Indians", batsman_runs %in% four_six)
+dda = dsa %>% group_by(match_id,batsman)
+oga = count(dda,batsman_runs)
+dfi = summarise(oga, total_4s_6s = sum(n))
+
+cda = full_join(plx,zxc, by = c("match_id","batsman"))
+moe = full_join(cda,dfi, by = c("match_id","batsman"))
+any(is.na(moe))
+moe[is.na(moe)] = 0
+moe$strike_rate = (moe$totalruns/moe$total_balls )*100
+
+pra = rbind(moe,ldf)
+
+##conditions - more than 10 balls
+fgu =filter(pra, total_balls>10)
+qer = filter(fgu,strike_rate>130 & total_4s_6s>3)
+ghu =group_by(qer,match_id)
+wsi = count(ghu, batsman)
+plw = summarise(wsi,batsman_count = sum(n))
+mean(plw$batsman_count) #3.416
+median(plw$batsman_count)#3
+ggplot(plw,aes(x=batsman_count))+geom_bar()
+##right skewed distribution, median is best measure
+
+##########
+#### Question 5 ####
+##########
+
+#total runs of RCB in first 6 overs
+overs = 1:6
+fzo = filter(hj, batting_team == "Royal Challengers Bangalore", bowling_team == "Mumbai Indians", over %in% overs )
+opv = group_by(fzo,match_id)
+ogu = summarise(opv, total_RCB = sum(total_runs))
+
+#total runs MI in first 6 overs
+lir = filter(hj, batting_team == "Mumbai Indians" , bowling_team == "Royal Challengers Bangalore", over %in% overs)
+qcb = group_by(lir,match_id)
+lvi = summarise(qcb, total_MI = sum(total_runs))
+
+xzv = full_join(ogu,lvi, by = "match_id")
+xzv$diffof_rcb_minusMI = xzv$total_RCB - xzv$total_MI
+mean(xzv$diffof_rcb_minusMI) #-2
+median(xzv$diffof_rcb_minusMI) #-3
+ln = ggplot(xzv, aes(x= diffof_rcb_minusMI))+geom_bar()
+ggplotly(ln)
+##right skewed distribution
+table(xzv$diffof_rcb_minusMI)
+##however table shows majorly data in range between -6 & -14, comparison to other range given
+##RCB SCORE LESS THAN MI SCORE
