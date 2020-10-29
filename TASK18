@@ -1,0 +1,187 @@
+library(readxl)
+dai = read_excel("matches_SHORT.xlsx",sheet = 1)
+table(dai$team1)
+
+library(dplyr)
+library(ggplot2)
+library(plotly)
+
+mr = c("CSK","KKR")
+jhq = filter(dai, team1 %in% mr, team2 %in% mr)
+
+##########
+#### Question 1 ####
+##########
+
+tqa= ggplot(jhq, aes(winner))+geom_bar(aes(fill = winner))
+ggplotly(tqa)
+#CSK WON 13 MATCHES KKR WON 7 MATCHES, OUT OF 20 MATCHES THEY PLAYED AGAINST EACH OTHER
+
+tza= ggplot(dai, aes(winner))+geom_bar(aes(fill = winner))
+ggplotly(tza)
+#CSK won 100 matches KKR WON 92 MATCHES 
+
+hj = read.csv("deliveries.csv")
+sa = filter(hj, batting_team == "Chennai Super Kings")
+length(unique(sa$match_id)) ##164 matches played
+ka = filter(hj, batting_team == "Kolkata Knight Riders")
+length(unique(ka$match_id)) ##178 matches played
+##MI WON 100/164 MATCHES, RCB WON 92/178 MATCHES played
+
+##########
+#### Question 2 ####
+##########
+
+hj = read.csv("deliveries.csv")
+tyn = c("Kolkata Knight Riders","Chennai Super Kings")
+plx = filter(hj, batting_team %in% tyn, bowling_team %in% tyn )
+match = unique(plx$match_id)
+team = unique(plx$batting_team)
+plx$ballno = NA
+
+for(i in 1:length(match)){
+  for(j in 1:length(team)){
+    m = 1
+    for(n in 1:nrow(plx)){
+      if(plx$match_id[n]== match[i] & plx$batting_team[n]==team[j]){
+       plx$ballno[n]=m
+       m=m+1
+      }
+    }
+  }
+}
+
+## KKR cum sum of runs
+add = c(NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA)
+tr =as.list(add)
+uy =as.list(add)
+
+for(j in 1:length(match)){
+  
+  da2 = filter(hj, match_id == match[j], batting_team == team[1], bowling_team == team[2] )
+  for(i in 1:nrow(da2)){
+    tr[[j]][i] = sum(da2$total_runs[1:i])
+    uy[[j]] = as.data.frame(tr[j])
+  }
+}
+
+names(uy[[1]]) = names(uy[[2]]) = names(uy[[3]])= names(uy[[4]])=names(uy[[5]]) =names(uy[[6]]) = names(uy[[7]])= names(uy[[8]])= names(uy[[9]])= names(uy[[10]]) = names(uy[[11]]) = names(uy[[12]]) = names(uy[[13]])= names(uy[[14]])=names(uy[[15]]) =names(uy[[16]]) = names(uy[[17]])= names(uy[[18]])= names(uy[[19]])= names(uy[[20]]) = "cummuative_total_runs"
+mk = do.call(rbind.data.frame, uy[1:20])
+
+pws = filter(plx, batting_team == "Kolkata Knight Riders", bowling_team == "Chennai Super Kings" )
+pod = cbind(pws,mk)
+tgx = pod[c("match_id","batting_team","bowling_team","ballno","cummuative_total_runs")]
+run=75:80
+length(unique(pod$match_id))
+plb = filter(tgx, cummuative_total_runs %in% run)
+length(unique(plb$match_id)) #match_id = 281 
+filter(tgx, match_id == 406) ##total runs can score only 61
+
+pka = group_by(plb, match_id)
+opi = slice(pka,1) ##20 MATCHES PLAYED AGAINST CSK, KKR ONLY IN ONE MATCH COULD NOT CROSS 70
+colnames(opi)[4] = "ball_taken_by_KKR"
+## CSK cum sum of runs
+add = c(NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA)
+tr =as.list(add)
+uy =as.list(add)
+
+for(j in 1:length(match)){
+  
+  da2 = filter(hj, match_id == match[j], batting_team == team[2], bowling_team == team[1] )
+  for(i in 1:nrow(da2)){
+    tr[[j]][i] = sum(da2$total_runs[1:i])
+    uy[[j]] = as.data.frame(tr[j])
+  }
+}
+
+names(uy[[1]]) = names(uy[[2]]) = names(uy[[3]])= names(uy[[4]])=names(uy[[5]]) =names(uy[[6]]) = names(uy[[7]])= names(uy[[8]])= names(uy[[9]])= names(uy[[10]]) = names(uy[[11]]) = names(uy[[12]]) = names(uy[[13]])= names(uy[[14]])=names(uy[[15]]) =names(uy[[16]]) = names(uy[[17]])= names(uy[[18]])= names(uy[[19]])= names(uy[[20]]) = "cummuative_total_runs_CSK"
+nk = do.call(rbind.data.frame, uy[1:20])
+
+pwv = filter(plx, batting_team == "Chennai Super Kings", bowling_team == "Kolkata Knight Riders" )
+aod = cbind(pwv,nk)
+
+lit = aod[c("match_id","batting_team","bowling_team","ballno","cummuative_total_runs_CSK")]
+run=75:80
+length(unique(pod$match_id))
+lzc = filter(lit, cummuative_total_runs_CSK %in% run)
+length(unique(lzc$match_id)) #match_id = 103 
+filter(lit, match_id == 103) ##total runs can score only 55
+
+hzq = group_by(lzc, match_id)
+lwc = slice(hzq,1) ##20 MATCHES PLAYED AGAINST KKR, CSK ONLY IN ONE MATCH COULD NOT CROSS 70
+colnames(lwc)[4] = "ball_taken_by_CSK"
+
+yui = full_join(opi[c(1,4)],lwc[c(1,4)], by = c("match_id"))
+yui[is.na(yui)] = 0
+yui$ball_difference = yui$ball_taken_by_KKR - yui$ball_taken_by_CSK
+mean(yui$ball_difference) #3.5
+median(yui$ball_difference) #5
+olv = ggplot(yui, aes(x= ball_difference))+geom_histogram(fill = "red", alpha = 0.5, col = "black")
+ggplotly(olv)
+##out of all given range majorly clustered 0-7, satisfy mean/median
+##thus KKR balls takes mores KKR takes more ball to score 75 is more than CSK
+
+##########
+#### Question 3 ####
+##########
+
+pqc = filter(hj, bowler == "DL Chahar" )
+mat = unique(pqc$match_id)
+pqc$ballno_chahar_takes = NA
+
+for(i in 1:length(mat)){
+   m =1
+  for(j in 1:nrow(pqc)){
+    if(pqc$match_id[j] == mat[i]){
+      pqc$ballno_chahar_takes[j]=m
+      m=m+1
+    }
+  }
+}
+
+mk = pqc[c("match_id","ballno_chahar_takes","player_dismissed" )]
+"%!in%" = Negate("%in%")
+ozi = filter(mk, player_dismissed %!in% "" )
+lk = group_by(ozi, match_id)
+kln = slice(lk,1)
+mean(kln$ballno_chahar_takes) #10.40909
+median(kln$ballno_chahar_takes) #9.5
+qcv = ggplot(kln,aes(x=ballno_chahar_takes))+geom_histogram(fill = "red", alpha = 0.5, col = "black")
+ggplotly(qcv)
+##major cluster is 8-15 balls taken by chahar to bowled out first player
+
+##########
+#### Question 4 ####
+##########
+fou = filter(hj, batting_team %in% tyn, bowling_team %in% tyn, batsman_runs == 4 )
+tdf = group_by(fou, match_id)
+plm = count(tdf,over)
+pwq = count(plm,over)
+kx = summarise(pwq, total_no_of_overs_4s = sum(n))
+
+ksa = filter(hj, batting_team %in% tyn, bowling_team %in% tyn, batsman_runs == 6 )
+ycs = group_by(ksa, match_id)
+prtu = count(ycs,over)
+kqb = count(prtu,over)
+kfl  = summarise(kqb, total_no_of_overs_6s = sum(n))
+
+opl = full_join(kx,kfl, by = c("match_id"))
+opl$over_both_4s_6s = apply(opl, 1, min)
+mean(opl$over_both_4s_6s) #7.25
+median(opl$over_both_4s_6s) #7.5
+lko = ggplot(opl, aes(x=over_both_4s_6s))+geom_bar(fill = "red", alpha = 0.5, col = "black")
+ggplotly(lko)
+##left skewed distribution, also most data point lie above 7 
+
+##########
+#### Question 5 ####
+##########
+fau = filter(hj, batting_team %in% tyn, bowling_team %in% tyn, noball_runs %!in% 0 )
+unique(fau$noball_runs)
+ko = group_by(fau, match_id)
+kjh = count(ko, noball_runs)
+mean(kjh$n) #1.6
+median(kjh$n) #1
+fgp = ggplot(kjh, aes(x=n))+geom_bar(fill = "red", alpha = 0.5, col = "black")
+ggplotly(lko)
+##left skewed, majorly 1 noball in all matches played b/w CSK & KKR
